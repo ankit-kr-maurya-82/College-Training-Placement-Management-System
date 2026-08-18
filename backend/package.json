@@ -1,0 +1,19 @@
+{
+  "name": "placementbackend",
+  "version": "1.0.0",
+  "description": "a college training placement system",
+  "keywords": [
+    "node",
+    "training"
+  ],
+  "license": "ISC",
+  "author": "ankit kr maurya",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
