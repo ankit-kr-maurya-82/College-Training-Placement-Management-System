@@ -1,1 +1,1 @@
-export const AdminDB  = "AdminDB"
+export const AdminDB = "AdminDB";
