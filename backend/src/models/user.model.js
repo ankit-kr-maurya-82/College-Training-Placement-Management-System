@@ -42,7 +42,20 @@ const userSchema = new Schema(
         },
         role:{
             type: String,
+            enum:['student', 'admin', 'recruiter'],
             default: "user"
+        },
+        phone:{
+            type: Number,
+            required: true
+        },
+        address:{
+            type: String,
+            required: true
+        },
+        gender:{
+            type:String,
+            enum:["male","female", "other"]
         }
     },
     {
