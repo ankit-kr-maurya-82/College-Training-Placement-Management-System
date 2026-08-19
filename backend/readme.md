@@ -4,3 +4,5 @@ npm i express
 npm i mongoose
 npm i -D nodemon
 npm i -D prettier
+npm i cookie-parser
+npm i cors
