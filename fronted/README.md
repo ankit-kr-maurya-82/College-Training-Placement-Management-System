@@ -1,16 +1,57 @@
-# React + Vite
+## Frontend Structure<br>
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+frontend/<br>
+│<br>
+├── src/<br>
+│   ├── components/<br>
+│   │   ├── Navbar.jsx<br>
+│   │   ├── Sidebar.jsx<br>
+│   │   ├── DataTable.jsx<br>
+│   │   ├── Modal.jsx<br>
+│   │   ├── JobCard.jsx<br>
+│   │   └── NotificationBell.jsx<br>
+│   │<br>
+│   ├── pages/<br>
+│   │   ├── auth/<br>
+│   │   │   ├── Login.jsx<br>
+│   │   │   └── Register.jsx<br>
+│   │   │<br>
+│   │   ├── student/<br>
+│   │   │   ├── Dashboard.jsx<br>
+│   │   │   ├── Profile.jsx<br>
+│   │   │   ├── Companies.jsx<br>
+│   │   │   ├── DriveDetails.jsx<br>
+│   │   │   ├── Applications.jsx<br>
+│   │   │   ├── Interviews.jsx<br>
+│   │   │   └── Notifications.jsx<br>
+│   │   │<br>
+│   │   ├── admin/<br>
+│   │   │   ├── Dashboard.jsx<br>
+│   │   │   ├── Students.jsx<br>
+│   │   │   ├── Companies.jsx<br>
+│   │   │   ├── Drives.jsx<br>
+│   │   │   ├── Applications.jsx<br>
+│   │   │   ├── Interviews.jsx<br>
+│   │   │   ├── Placements.jsx<br>
+│   │   │   └── Reports.jsx<br>
+│   │   │<br>
+│   │   └── recruiter/<br>
+│   │       ├── Dashboard.jsx<br>
+│   │       ├── Profile.jsx<br>
+│   │       ├── Drives.jsx<br>
+│   │       ├── Applications.jsx<br>
+│   │       └── Interviews.jsx<br>
+│   │<br>
+│   ├── services/<br>
+│   │   └── api.js<br>
+│   │<br>
+│   ├── context/<br>
+│   │   └── AuthContext.jsx<br>
+│   │<br>
+│   ├── routes/<br>
+│   │   └── AppRoutes.jsx<br>
+│   │<br>
+│   ├── App.jsx<br>
+│   └── main.jsx<br>
+│<br>
+└── package.json<br>
