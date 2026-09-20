@@ -1,10 +1,14 @@
-
+import { Student } from "../models/student.model.js";
 
 const registerStudent = async (req, res) => {
 
     try{
-        const {name, email, password} = req.body;
-        const student = await Student.create({name, email, password});
+        const {name} = req.body ?? {};
+        if (typeof name !== "string" || !name.trim()) {
+            return res.status(400).json({message: "Name is required"});
+        }
+        
+        const student = await Student.create({name: name.trim()});
         res.status(201).json(student);
 
     }catch(err){
@@ -12,6 +16,7 @@ const registerStudent = async (req, res) => {
             message: "Error registering student",
             error: err.message
         })
+        console.error("Error registering student:", err);
     }
 
 
