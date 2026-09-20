@@ -38,4 +38,17 @@ const registerStudent = async (req, res) => {
 }
 
 
-export { registerStudent };
+const showStudents = async (req, res) => {
+    try {
+        const students = await Student.find().select("name email").sort({createdAt: -1}).lean();
+        return res.render("students", {students, error: null});
+    } catch (err) {
+        console.error("Error loading students:", err);
+        return res.status(500).render("students", {
+            students: [],
+            error: "Students could not be loaded. Please try again.",
+        });
+    }
+};
+
+export { registerStudent, showStudents };
