@@ -78,6 +78,14 @@
             cursor: pointer;
         }
 
+        .delete-button {
+            width: auto;
+            min-width: 80px;
+            margin-top: 0;
+            padding: 8px 12px;
+            background: #b42318;
+        }
+
         button:disabled {
             opacity: .6;
             cursor: wait;
@@ -158,11 +166,12 @@
                                             <th scope="col">Name</th>
                                             <th scope="col">Email</th>
                                             <th scope="col">Password</th>
+                                            <th scope="col">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <% students.forEach(student=> { %>
-                                            <tr>
+                                            <tr data-student-row="<%= student._id %>">
                                                 <td>
                                                     <%= student.name %>
                                                 </td>
@@ -171,6 +180,13 @@
                                                 </td>
                                                 <td>
                                                     <%= student.password || '—' %>
+                                                </td>
+                                                <td>
+                                                    <button class="delete-button" type="button"
+                                                        data-delete-student="<%= student._id %>"
+                                                        data-student-name="<%= student.name %>">
+                                                        Delete
+                                                    </button>
                                                 </td>
                                             </tr>
                                             <% }); %>
@@ -185,6 +201,7 @@
         const form = document.getElementById('registration-form');
         const button = form.querySelector('button');
         const message = document.getElementById('message');
+
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
             button.disabled = true;
@@ -206,6 +223,41 @@
             } finally {
                 button.disabled = false;
             }
+        });
+
+        document.querySelectorAll('[data-delete-student]').forEach((deleteButton) => {
+            deleteButton.addEventListener('click', async () => {
+                const studentId = deleteButton.dataset.deleteStudent;
+                const studentName = deleteButton.dataset.studentName || 'this student';
+                const confirmed = window.confirm(`Delete ${studentName}?`);
+
+                if (!confirmed) {
+                    return;
+                }
+
+                deleteButton.disabled = true;
+                deleteButton.textContent = 'Deleting...';
+
+                try {
+                    const response = await fetch(`/api/v1/students/${studentId}`, {
+                        method: 'DELETE',
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        window.alert(data.message || 'Delete failed. Please try again.');
+                        deleteButton.disabled = false;
+                        deleteButton.textContent = 'Delete';
+                        return;
+                    }
+
+                    window.location.assign('/api/v1/students/register');
+                } catch (error) {
+                    window.alert('Unable to reach the server. Please try again.');
+                    deleteButton.disabled = false;
+                    deleteButton.textContent = 'Delete';
+                }
+            });
         });
     </script>
 </body>
