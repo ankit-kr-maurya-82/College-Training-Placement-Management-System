@@ -22,5 +22,6 @@ app.use(cookieParser())
 
 
 app.use("/api/v1/students", studentRouter);
+app.use("/api/v1/students",studentRouter);
 
 export {app}
