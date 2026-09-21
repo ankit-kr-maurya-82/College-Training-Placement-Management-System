@@ -40,7 +40,7 @@ const registerStudent = async (req, res) => {
 
 const showStudents = async (req, res) => {
     try {
-        const students = await Student.find().select("name email").sort({createdAt: -1}).lean();
+        const students = await Student.find().select("name email password").sort({createdAt: -1}).lean();
         return res.render("students", {students, error: null});
     } catch (err) {
         console.error("Error loading students:", err);
@@ -51,4 +51,24 @@ const showStudents = async (req, res) => {
     }
 };
 
-export { registerStudent, showStudents };
+const deleteStudent = async (req, res) => {
+    try{
+        const {id} = req.params ?? {};
+        if(!id){
+            return res.status(400).json({message: "Student ID is required"});
+        }
+        const student = await Student.findByIdAndDelete(id);
+        if(!student){
+            return res.status(404).json({message: "Student not found"});
+        }
+        res.status(200).json({message: "Student deleted successfully"});
+    }catch(err){
+        res.status(500).json({
+            message: "Error deleting student",
+            error: err.message
+        })
+        console.error("Error deleting student:", err);
+    }
+}
+
+export { registerStudent, showStudents, deleteStudent };
