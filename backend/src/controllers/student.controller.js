@@ -13,7 +13,7 @@ const registerStudent = async (req, res) => {
         if(typeof password !== "string" || !password.trim()) {
             return res.status(400).json({message: "Password is required"});
         }
-        
+    
 
 
         // Check if the email already exists in the database
