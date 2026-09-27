@@ -1,7 +1,6 @@
 import express, { json } from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
-import studentRouter from "./routes/student.routes.js"
 import { fileURLToPath } from "node:url"
 
 const app = express()
@@ -18,9 +17,16 @@ app.use(express.json({limit: "16kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
 app.use(cookieParser())
 
+
+// import routes
+import companyRouter from "./routes/comapany.routes.js"
+import studentRouter from "./routes/student.routes.js"
 // routes
 
+const baseUrl = "/api/v1"
 
-app.use("/api/v1/students", studentRouter);
+
+app.use(`${baseUrl}/students`, studentRouter);
+app.use(`${baseUrl}/companies`, companyRouter);
 
 export {app}
