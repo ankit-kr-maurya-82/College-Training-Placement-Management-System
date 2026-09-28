@@ -177,4 +177,5 @@ const loginCompany = async (req, res) => {
     }
 }
 
+
 export {registerCompany, loginCompany}
