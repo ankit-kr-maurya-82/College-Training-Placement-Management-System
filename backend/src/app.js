@@ -29,5 +29,5 @@ const baseUrl = "/api/v1"
 
 app.use(`${baseUrl}/students`, studentRouter);
 app.use(`${baseUrl}/companies`, companyRouter);
-// ff
+//
 export {app}
