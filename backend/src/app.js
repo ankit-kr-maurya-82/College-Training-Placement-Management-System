@@ -21,6 +21,7 @@ app.use(cookieParser())
 // import routes
 import companyRouter from "./routes/comapany.routes.js"
 import studentRouter from "./routes/student.routes.js"
+
 // routes
 
 const baseUrl = "/api/v1"
