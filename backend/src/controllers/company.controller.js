@@ -114,4 +114,67 @@ const registerCompany = async(req, res) => {
     }
 }
 
-export {registerCompany}
+
+const loginCompany = async (req, res) => {
+    try{
+        const {companyName, hrEmail,hrPassword} = req.body ?? {};
+
+        if(typeof companyName != "string" || !companyName.trim()){
+            return res
+                .status(400)
+                .json({
+                    message: "company name is required"
+                })
+        }
+        if(typeof hrEmail != "string" || !hrEmail.trim()){
+            return res
+                .status(400)
+                .json({
+                    message: "HR Email is required"
+                })
+        }
+        if(typeof hrPassword != "string" || !hrPassword.trim()){
+            return res
+                .status(400)
+                .json({
+                    message: "HR Password is required"
+                })
+        }
+
+        const company = await Company.findOne({hrEmail: hrEmail.trim().toLowerCase()});
+
+        if(!company){
+            return res
+                .status(401)
+                .json({ message: "Invalid email or password" });
+        }
+        if (company.companyName !== companyName.trim()) {
+            return res
+                .status(401)
+                .json({ message: "Invalid Company Name" });
+        }
+        if (company.hrPassword !== hrPassword) {
+            return res
+                .status(401)
+                .json({ message: "Invalid password" });
+        }
+
+        const companyData = company.toObject();
+        delete companyData.hrPassword;
+        return res.status(200).json({
+            message: "Company logged in successfully",
+            company: companyData,
+        });
+
+    } catch(err){
+        res
+            .status(500)
+            .json({
+                message: "Error logging in company",
+                error: err.message
+            })
+        console.error("Error logging in company:", err)
+    }
+}
+
+export {registerCompany, loginCompany}
