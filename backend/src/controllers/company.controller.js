@@ -178,4 +178,42 @@ const loginCompany = async (req, res) => {
 }
 
 
-export {registerCompany, loginCompany}
+const deleteCompany = async (req, res) => {
+    try{
+        const {companyId} = req.params ?? {};
+
+        if(!companyId){
+            return res
+                .status(400)
+                .json({
+                    message: "Company ID is required"
+                })  
+        }
+
+        const deletedCompany = await Company.findByIdAndDelete(companyId);
+        if(!deletedCompany){
+            return res
+                .status(404)
+                .json({
+                    message: "Company not found"
+                })
+        }
+        
+        return res
+            .status(200)
+            .json({
+                message: "Company deleted successfully"
+            })
+    } catch(err){
+        res
+            .status(500)
+            .json({
+                message: "Error deleting company",
+                error: err.message
+            })
+        console.error("Error deleting company:", err)
+    }
+}
+
+
+export {registerCompany, loginCompany, deleteCompany}
