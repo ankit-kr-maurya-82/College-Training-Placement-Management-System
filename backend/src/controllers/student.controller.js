@@ -1,4 +1,9 @@
 import { Student } from "../models/student.model.js";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { randomBytes, createHash } from "node:crypto";
+
+
 
 const registerStudent = async (req, res) => {
 
@@ -28,6 +33,38 @@ const registerStudent = async (req, res) => {
             password: password.trim()
         });
         res.status(201).json(student);
+
+        // Hash the password before saving it to the database
+        const hashedPassword = await bcrypt.hash(password.trim(), 10);
+
+        const newStudent = new Student({
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password: hashedPassword,
+        });
+
+        await newStudent.save();
+
+        // Generate a JWT token for the registered student
+        const token = jwt.sign(
+            {
+                studentId: newStudent._id,
+                email: newStudent.email,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );  
+
+        res.status(201).json({
+            message: "Student registered successfully",
+            student: {
+                _id: newStudent._id,
+                name: newStudent.name,
+                email: newStudent.email,
+            },
+            token,
+        });
+        
 
 
     } catch (err) {
