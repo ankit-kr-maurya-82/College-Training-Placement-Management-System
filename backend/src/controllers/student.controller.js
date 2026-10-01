@@ -27,13 +27,6 @@ const registerStudent = async (req, res) => {
             return res.status(400).json({ message: "Email already exists" });
         }
 
-        const student = await Student.create({
-            name: name.trim(),
-            email: email.trim().toLowerCase(),
-            password: password.trim()
-        });
-        res.status(201).json(student);
-
         // Hash the password before saving it to the database
         const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
@@ -42,8 +35,6 @@ const registerStudent = async (req, res) => {
             email: email.trim().toLowerCase(),
             password: hashedPassword,
         });
-
-        await newStudent.save();
 
         // Generate a JWT token for the registered student
         const token = jwt.sign(
@@ -55,7 +46,9 @@ const registerStudent = async (req, res) => {
             { expiresIn: "1h" }
         );  
 
-        res.status(201).json({
+        await newStudent.save();
+
+        return res.status(201).json({
             message: "Student registered successfully",
             student: {
                 _id: newStudent._id,
@@ -68,11 +61,11 @@ const registerStudent = async (req, res) => {
 
 
     } catch (err) {
-        res.status(500).json({
+        console.error("Error registering student:", err);
+        return res.status(500).json({
             message: "Error registering student",
             error: err.message
-        })
-        console.error("Error registering student:", err);
+        });
     }
 
 
@@ -141,7 +134,12 @@ const loginStudents = async (req, res) => {
                 .json({ message: "Invalid email or password" });
         }
 
-        if (student.password !== password.trim()) {
+        // Keep existing accounts usable while new registrations store bcrypt hashes.
+        const isHashedPassword = /^\$2[ab]\$\d{2}\$/.test(student.password);
+        const passwordMatches = isHashedPassword
+            ? await bcrypt.compare(password.trim(), student.password)
+            : student.password === password.trim();
+        if (!passwordMatches) {
             return res
                 .status(401)
                 .json({ message: "Invalid password" });
