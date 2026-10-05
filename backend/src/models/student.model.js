@@ -68,7 +68,12 @@ const studentSchema = new mongoose.Schema(
                 message: "Active backlogs must be a whole number",
             },
         },
-        skills: [{ type: String, trim: true }],
+        skills: [
+            { 
+                type: String, 
+                trim: true 
+            }
+        ],
         resumeUrl: {
             type: String,
             trim: true,
