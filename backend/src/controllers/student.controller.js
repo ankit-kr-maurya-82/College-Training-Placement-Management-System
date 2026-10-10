@@ -146,6 +146,12 @@ const loginStudents = async (req, res) => {
                 .json({ message: "Invalid password" });
         }
 
+        const token = jwt.sign(
+            { studentId: student._id, email: student.email },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" },
+        );
+
         return res.status(200).json({
             message: "Student logged in successfully",
             student: {
@@ -153,15 +159,11 @@ const loginStudents = async (req, res) => {
                 name: student.name,
                 email: student.email,
             },
+            token,
         });
     } catch (err) {
-        res
-            .status(500)
-            .json({
-                message: "Error logging in student",
-                error: err.message
-            })
         console.error("Error logging in student:", err);
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
 

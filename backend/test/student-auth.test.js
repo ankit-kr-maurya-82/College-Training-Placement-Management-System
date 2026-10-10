@@ -118,7 +118,11 @@ describe("student registration and login", { concurrency: false }, () => {
                 assert.deepEqual(login.body, {
                     message: "Student logged in successfully",
                     student: registration.body.student,
+                    token: login.body.token,
                 });
+                const loginToken = jwt.verify(login.body.token, testSecret);
+                assert.equal(loginToken.studentId, savedStudent._id.toString());
+                assert.equal(loginToken.email, "student@example.com");
             }
         }
         assert.equal(models.save.mock.callCount(), 1, "Login must not persist another student");
@@ -169,6 +173,17 @@ describe("student registration and login", { concurrency: false }, () => {
         assert.equal(res.jsonCalls, 1);
         assert.equal(res.body.message, "Error registering student");
         assertNoWrites(models);
+    });
+
+    it("does not expose JWT configuration errors during login", async (t) => {
+        delete process.env.JWT_SECRET;
+        const student = new Student({ name: "Example Student", email: "student@example.com", password: credentials.password.trim() });
+        stubDatabase(t, { findOne: async () => student });
+        t.mock.method(console, "error", () => {});
+        const res = response();
+        await loginStudents({ body: { email: credentials.email, password: credentials.password } }, res);
+        assert.equal(res.statusCode, 500);
+        assert.deepEqual(res.body, { message: "Internal server error" });
     });
 
     it("returns one error and never sends success when saving fails", async (t) => {
