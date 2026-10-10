@@ -1,8 +1,9 @@
 import axios from 'axios'
 
-const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1').replace(/\/$/, '')
+const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '')
 
-export const client = axios.create({ baseURL, timeout: 15000, withCredentials: true, headers: { Accept: 'application/json' } })
+// This backend returns bearer tokens in JSON and does not use cookie sessions.
+export const client = axios.create({ baseURL, timeout: 15000, headers: { Accept: 'application/json' } })
 
 client.interceptors.request.use((config) => {
   const token = sessionStorage.getItem('placement-token')

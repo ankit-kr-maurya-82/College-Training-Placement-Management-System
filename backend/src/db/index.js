@@ -1,15 +1,5 @@
 import mongoose from "mongoose";
 import { AdminDB } from "../constants.js";
-import dns from "dns"
-
-dns.setServers([
-    '8.8.8.8',
-  '8.8.4.4',
-  '1.1.1.1',
-  '0.0.0.0'
-])
-
-
 
 const connectDB = async() => {
     try {
