@@ -21,6 +21,7 @@ app.use(cookieParser())
 // import routes
 import companyRouter from "./routes/comapany.routes.js"
 import studentRouter from "./routes/student.routes.js"
+import driveRouter from "./routes/drive.routes.js"
 
 // routes
 
@@ -29,5 +30,6 @@ const baseUrl = "/api/v1"
 
 app.use(`${baseUrl}/students`, studentRouter);
 app.use(`${baseUrl}/companies`, companyRouter);
+app.use(`${baseUrl}/drives`, driveRouter);
 //
 export {app}
