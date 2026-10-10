@@ -13,6 +13,7 @@ import AdminDrives from '../pages/admin/Drives.jsx'
 import AdminApplications from '../pages/admin/Applications.jsx'
 import AdminStudents from '../pages/admin/Students.jsx'
 import AdminReports from '../pages/admin/Reports.jsx'
+import AdminStaff from '../pages/admin/Staff.jsx'
 
 export default function AppRoutes() { 
     return <Shell>
@@ -24,13 +25,14 @@ export default function AppRoutes() {
                     <Route path="/drives/:id" element={<DriveDetails />} />
                     <Route path="/companies" element={<Companies />} />
                     <Route path="/companies/:id" element={<CompanyDetails />} />
-                    <Route path="/applications" element={<Protected><Applications /></Protected>} />
+                    <Route path="/applications" element={<Protected role="STUDENT"><Applications /></Protected>} />
                     <Route path="/admin" element={<Protected manager><AdminDashboard /></Protected>} />
                     <Route path="/admin/companies" element={<Protected manager><AdminCompanies /></Protected>} />
                     <Route path="/admin/drives" element={<Protected manager><AdminDrives /></Protected>} />
                     <Route path="/admin/applications" element={<Protected manager><AdminApplications /></Protected>} />
                     <Route path="/admin/students" element={<Protected manager><AdminStudents /></Protected>} />
                     <Route path="/admin/reports" element={<Protected manager><AdminReports /></Protected>} />
+                    <Route path="/admin/staff" element={<Protected role="ADMIN"><AdminStaff /></Protected>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Shell> }

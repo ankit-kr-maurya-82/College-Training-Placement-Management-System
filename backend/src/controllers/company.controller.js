@@ -1,4 +1,6 @@
 import {Company} from '../models/company.model.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
 const companyFields = ["name", "description", "website", "location", "industry", "hrEmail", "hrContact", "logo", "isActive"];
 const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -205,7 +207,7 @@ const registerCompany = async(req, res) => {
             companyName: companyName.trim(),
             hrName: hrName.trim(),
             hrEmail: normalizedEmail,
-            hrPassword,
+            hrPassword: await bcrypt.hash(hrPassword.trim(), 10),
             hrPhoneNumber: hrPhoneNumber.trim(),
             location: location.trim(),
             website: website.trim(),
@@ -259,6 +261,10 @@ const loginCompany = async (req, res) => {
                 })
         }
 
+        if (!process.env.JWT_SECRET) {
+            return res.status(500).json({ message: "Authentication is not configured" });
+        }
+
         const company = await Company.findOne({hrEmail: hrEmail.trim().toLowerCase()});
 
         if(!company){
@@ -271,7 +277,11 @@ const loginCompany = async (req, res) => {
                 .status(401)
                 .json({ message: "Invalid Company Name" });
         }
-        if (company.hrPassword !== hrPassword) {
+        const isHashedPassword = /^\$2[ab]\$\d{2}\$/.test(company.hrPassword ?? "");
+        const passwordMatches = isHashedPassword
+            ? await bcrypt.compare(hrPassword.trim(), company.hrPassword)
+            : company.hrPassword === hrPassword || company.hrPassword === hrPassword.trim();
+        if (!passwordMatches) {
             return res
                 .status(401)
                 .json({ message: "Invalid password" });
@@ -279,19 +289,20 @@ const loginCompany = async (req, res) => {
 
         const companyData = company.toObject();
         delete companyData.hrPassword;
+        const token = jwt.sign(
+            { companyId: company._id.toString(), email: company.hrEmail, role: "COMPANY" },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" },
+        );
         return res.status(200).json({
             message: "Company logged in successfully",
             company: companyData,
+            token,
         });
 
     } catch(err){
-        res
-            .status(500)
-            .json({
-                message: "Error logging in company",
-                error: err.message
-            })
         console.error("Error logging in company:", err)
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
 

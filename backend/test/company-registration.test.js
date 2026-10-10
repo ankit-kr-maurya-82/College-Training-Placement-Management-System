@@ -4,6 +4,7 @@ import { setImmediate } from "node:timers/promises";
 import { after, before, describe, it } from "node:test";
 import { app } from "../src/app.js";
 import { Company } from "../src/models/company.model.js";
+import bcrypt from "bcryptjs";
 
 const validCompany = {
     companyName: "  Example Company  ",
@@ -100,7 +101,11 @@ describe("POST /api/v1/companies/register", { concurrency: false }, () => {
             assert.equal(findOne.mock.callCount(), 1);
             assert.deepEqual(findOne.mock.calls[0].arguments, [{ hrEmail: "hr@example.com" }]);
             assert.equal(create.mock.callCount(), 1);
-            assert.deepEqual(create.mock.calls[0].arguments, [expectedInput]);
+            const savedInput = create.mock.calls[0].arguments[0];
+            const { hrPassword: savedPassword, ...savedFields } = savedInput;
+            const { hrPassword: _rawPassword, ...expectedFields } = expectedInput;
+            assert.deepEqual(savedFields, expectedFields);
+            assert.equal(await bcrypt.compare(validCompany.hrPassword.trim(), savedPassword), true);
             const { hrPassword, ...publicCompany } = savedCompany;
             assert.deepEqual(response.body, publicCompany);
             assert.equal(Object.hasOwn(response.body, "hrPassword"), false);

@@ -24,6 +24,7 @@ import studentRouter from "./routes/student.routes.js"
 import driveRouter from "./routes/drive.routes.js"
 import applicationRouter from "./routes/application.routes.js"
 import adminRouter from "./routes/admin.routes.js"
+import authRouter from "./routes/auth.routes.js"
 
 // routes
 
@@ -35,5 +36,6 @@ app.use(`${baseUrl}/companies`, companyRouter);
 app.use(`${baseUrl}/drives`, driveRouter);
 app.use(`${baseUrl}/applications`, applicationRouter);
 app.use(`${baseUrl}/admin`, adminRouter);
+app.use(`${baseUrl}/auth`, authRouter);
 //
 export {app}

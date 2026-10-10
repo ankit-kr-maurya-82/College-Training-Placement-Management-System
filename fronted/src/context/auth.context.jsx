@@ -16,23 +16,40 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const saved = sessionStorage.getItem('placement-user')
     const currentToken = sessionStorage.getItem('placement-token')
-    if (!currentToken || !readClaims(currentToken)) return null
-    try { return saved ? JSON.parse(saved) : readClaims(currentToken) } catch { return readClaims(currentToken) }
+    const claims = currentToken ? readClaims(currentToken) : null
+    if (!claims) return null
+    try {
+      const profile = saved ? JSON.parse(saved) : claims
+      if (!profile.role && claims.studentId) profile.role = 'STUDENT'
+      if (!profile.role && claims.role) profile.role = claims.role
+      return profile
+    } catch { return claims }
   })
 
   function saveSession(response) {
     if (!response?.token) throw new Error('The server did not return an authentication token.')
     const claims = readClaims(response.token)
     if (!claims) throw new Error('The server returned an invalid or expired session.')
-    const profile = response.student || response.user || { ...claims, role: claims.role }
+    const profile = response.student ? { ...response.student, role: claims.role || 'STUDENT' } : response.user || (response.company ? {
+      ...response.company,
+      name: response.company.companyName || response.company.name,
+      email: response.company.hrEmail || claims.email,
+      role: 'COMPANY',
+    } : { ...claims, role: claims.role })
     sessionStorage.setItem('placement-token', response.token)
     sessionStorage.setItem('placement-user', JSON.stringify(profile))
     setToken(response.token)
     setUser(profile)
   }
 
-  async function login(credentials) { saveSession(await api.post('/students/login', credentials)) }
+  async function login(credentials, accountType = 'STUDENT') {
+    const endpoints = { STUDENT: '/students/login', COMPANY: '/companies/login', MANAGER: '/auth/manager/login' }
+    const endpoint = endpoints[accountType]
+    if (!endpoint) throw new Error('Choose a valid account type.')
+    saveSession(await api.post(endpoint, credentials))
+  }
   async function register(details) { saveSession(await api.post('/students/register', details)) }
+  async function registerCompany(details) { return api.post('/companies/register', details) }
   function logout() {
     sessionStorage.removeItem('placement-token')
     sessionStorage.removeItem('placement-user')
@@ -45,7 +62,7 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('placement:unauthorized', reset)
   }, [])
 
-  const value = useMemo(() => ({ token, user, login, register, logout, isManager: ['ADMIN', 'TPO'].includes(String(user?.role || '').toUpperCase()) }), [token, user])
+  const value = useMemo(() => ({ token, user, login, register, registerCompany, logout, isManager: ['ADMIN', 'TPO'].includes(String(user?.role || '').toUpperCase()) }), [token, user])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

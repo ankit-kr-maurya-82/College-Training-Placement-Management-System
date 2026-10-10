@@ -8,9 +8,10 @@ export function Shell({ children }) {
   </div>
 }
 
-export function Protected({ manager = false, children }) {
+export function Protected({ manager = false, role, children }) {
   const { user, isManager } = useAuth()
   if (!user) return <Navigate to="/login" replace />
   if (manager && !isManager) return <Navigate to="/" replace />
+  if (role && user.role !== role) return <Navigate to={isManager ? '/admin' : '/'} replace />
   return children
 }

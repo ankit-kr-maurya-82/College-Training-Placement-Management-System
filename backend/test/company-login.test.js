@@ -3,6 +3,7 @@ import { once } from "node:events";
 import { after, before, describe, it } from "node:test";
 import { app } from "../src/app.js";
 import { Company } from "../src/models/company.model.js";
+import bcrypt from "bcryptjs";
 
 const credentials = {
     companyName: "  Example Company  ",
@@ -13,8 +14,11 @@ const credentials = {
 describe("POST /api/v1/companies/login", { concurrency: false }, () => {
     let server;
     let loginUrl;
+    let previousSecret;
 
     before(async () => {
+        previousSecret = process.env.JWT_SECRET;
+        process.env.JWT_SECRET = "company-login-test-secret";
         server = app.listen(0, "127.0.0.1");
         await once(server, "listening");
         loginUrl = "http://127.0.0.1:" + server.address().port + "/api/v1/companies/login";
@@ -27,6 +31,8 @@ describe("POST /api/v1/companies/login", { concurrency: false }, () => {
                 server.closeAllConnections();
             });
         }
+        if (previousSecret === undefined) delete process.env.JWT_SECRET;
+        else process.env.JWT_SECRET = previousSecret;
     });
 
     async function login(body) {
@@ -60,9 +66,19 @@ describe("POST /api/v1/companies/login", { concurrency: false }, () => {
         assert.equal(response.body.company._id, company._id.toString());
         assert.equal(response.body.company.companyName, "Example Company");
         assert.equal(response.body.company.hrEmail, "hr@example.com");
+        assert.equal(typeof response.body.token, "string");
         assert.equal(Object.hasOwn(response.body.company, "hrPassword"), false);
         assert.equal(JSON.stringify(response.body).includes(credentials.hrPassword.trim()), false);
         assert.equal(company.hrPassword, credentials.hrPassword);
+    });
+
+    it("supports bcrypt-hashed passwords from new company registrations", async (t) => {
+        const company = stubCompany(t);
+        company.hrPassword = await bcrypt.hash("secret-password", 4);
+        const response = await login({ ...credentials, hrPassword: "secret-password" });
+        assert.equal(response.status, 200);
+        assert.equal(typeof response.body.token, "string");
+        assert.equal(Object.hasOwn(response.body.company, "hrPassword"), false);
     });
 
     it("rejects a different HR email even when company name and password match", async (t) => {
@@ -101,6 +117,6 @@ describe("POST /api/v1/companies/login", { concurrency: false }, () => {
         t.mock.method(console, "error", () => {});
         const response = await login(credentials);
         assert.equal(response.status, 500);
-        assert.equal(response.body.message, "Error logging in company");
+        assert.equal(response.body.message, "Internal server error");
     });
 });

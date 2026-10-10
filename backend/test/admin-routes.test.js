@@ -11,6 +11,7 @@ const studentId = "507f1f77bcf86cd799439011";
 describe("Admin/TPO route authorization", { concurrency: false }, () => {
     let server;
     let baseUrl;
+    let authUrl;
     let previousSecret;
 
     before(async () => {
@@ -19,6 +20,7 @@ describe("Admin/TPO route authorization", { concurrency: false }, () => {
         server = app.listen(0, "127.0.0.1");
         await once(server, "listening");
         baseUrl = `http://127.0.0.1:${server.address().port}/api/v1/admin`;
+        authUrl = baseUrl.replace(/\/admin$/, "/auth");
     });
 
     after(async () => {
@@ -35,6 +37,25 @@ describe("Admin/TPO route authorization", { concurrency: false }, () => {
         assert.equal(anonymous.status, 401);
         const studentToken = jwt.sign({ studentId }, secret);
         const student = await fetch(`${baseUrl}/dashboard/overview`, { headers: { Authorization: `Bearer ${studentToken}` } });
+        assert.equal(student.status, 403);
+    });
+
+    it("mounts manager login and restricts TPO creation to Admin", async () => {
+        const invalidLogin = await fetch(`${authUrl}/manager/login`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: "invalid", password: "password" }),
+        });
+        assert.equal(invalidLogin.status, 400);
+
+        const body = JSON.stringify({ name: "TPO", email: "tpo@example.com", password: "safe-password" });
+        const anonymous = await fetch(`${authUrl}/manager/tpos`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body,
+        });
+        assert.equal(anonymous.status, 401);
+        const studentToken = jwt.sign({ studentId }, secret);
+        const student = await fetch(`${authUrl}/manager/tpos`, {
+            method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${studentToken}` }, body,
+        });
         assert.equal(student.status, 403);
     });
 
