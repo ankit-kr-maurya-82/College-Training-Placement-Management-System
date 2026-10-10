@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { Company } from "../src/models/company.model.js";
 import { Drive } from "../src/models/drive.model.js";
-import { closeDrive, createDrive, deleteDrive, getDriveById, getDrives, publishDrive, updateDrive } from "../src/controllers/drive.controller.js";
+import { closeDrive, createDrive, deleteDrive, getDriveById, getDrives, getManageDrives, publishDrive, updateDrive } from "../src/controllers/drive.controller.js";
 import { authenticateToken } from "../src/middlewares/auth.middleware.js";
 import { authorizeRoles } from "../src/middlewares/role.middleware.js";
 
@@ -68,6 +68,19 @@ describe("drive management", { concurrency: false }, () => {
         assert.equal(driveFilter.location.$regex, "Lucknow");
         assert.equal(driveFilter.$or[0].title.$regex, "backend");
         assert.deepEqual(res.body.pagination, { page: 2, limit: 5, total: 1, pages: 1 });
+    });
+
+    it("provides the manager inventory with drafts and closed drives for pagination", async (t) => {
+        const rows = [{ _id: id, status: "Draft" }, { _id: creatorId, status: "Closed" }];
+        let filter;
+        t.mock.method(Drive, "find", (query) => { filter = query; return chain(rows); });
+        t.mock.method(Drive, "countDocuments", async () => 2);
+        const res = response();
+        await getManageDrives({ query: { page: "1", limit: "1" } }, res);
+        assert.equal(res.statusCode, 200);
+        assert.equal(filter, undefined);
+        assert.deepEqual(res.body.drives, rows);
+        assert.deepEqual(res.body.pagination, { page: 1, limit: 1, total: 2, pages: 2 });
     });
 
     it("retrieves published drives and hides drafts or expired drives", async (t) => {

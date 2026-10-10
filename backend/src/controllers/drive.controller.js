@@ -103,6 +103,22 @@ export async function getDrives(req, res) {
     } catch (err) { return handleError(res, err, "retrieving"); }
 }
 
+// Manager-only inventory includes drafts and closed drives; public GET / remains active-only.
+export async function getManageDrives(req, res) {
+    const page = Number(req.query.page ?? 1);
+    const limit = Number(req.query.limit ?? 20);
+    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+        return res.status(400).json({ message: "page must be positive and limit must be between 1 and 100" });
+    }
+    try {
+        const [drives, total] = await Promise.all([
+            Drive.find().populate("company", "name companyName logo location").sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+            Drive.countDocuments({}),
+        ]);
+        return res.status(200).json({ drives, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+    } catch (err) { return handleError(res, err, "retrieving manager drive inventory"); }
+}
+
 export async function getDriveById(req, res) {
     if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid drive ID" });
     try {
