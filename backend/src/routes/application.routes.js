@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authenticateToken, requireActiveStudent, requireActiveStudentOrManager } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
 import {
     applyForDrive,
@@ -13,11 +13,11 @@ import {
 const router = express.Router();
 const managers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
 
-router.post("/", authenticateToken, applyForDrive);
-router.get("/my", authenticateToken, getMyApplications);
+router.post("/", authenticateToken, requireActiveStudent, applyForDrive);
+router.get("/my", authenticateToken, requireActiveStudent, getMyApplications);
 router.get("/", ...managers, getApplications);
-router.get("/:id", authenticateToken, getApplicationById);
-router.patch("/:id/withdraw", authenticateToken, withdrawApplication);
+router.get("/:id", authenticateToken, requireActiveStudentOrManager, getApplicationById);
+router.patch("/:id/withdraw", authenticateToken, requireActiveStudent, withdrawApplication);
 router.patch("/:id/status", ...managers, updateApplicationStatus);
 
 export default router;

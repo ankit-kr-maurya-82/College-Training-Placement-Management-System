@@ -134,6 +134,9 @@ const loginStudents = async (req, res) => {
                 .status(401)
                 .json({ message: "Invalid email or password" });
         }
+        if (student.isActive === false) {
+            return res.status(403).json({ message: "Student account is disabled" });
+        }
 
         // Keep existing accounts usable while new registrations store bcrypt hashes.
         const isHashedPassword = /^\$2[ab]\$\d{2}\$/.test(student.password);

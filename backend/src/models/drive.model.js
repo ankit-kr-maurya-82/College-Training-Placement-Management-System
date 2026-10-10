@@ -23,6 +23,7 @@ const driveSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 driveSchema.index({ status: 1, applicationDeadline: 1, createdAt: -1 });
+driveSchema.index({ status: 1, driveDate: 1, applicationDeadline: 1 });
 driveSchema.index({ title: "text", description: "text", location: "text", requiredSkills: "text" });
 
 export const Drive = mongoose.models.Drive || mongoose.model("Drive", driveSchema);

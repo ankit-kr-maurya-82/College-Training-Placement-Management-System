@@ -21,6 +21,7 @@ const applicationSchema = new mongoose.Schema({
 applicationSchema.index({ student: 1, drive: 1 }, { unique: true });
 applicationSchema.index({ student: 1, appliedAt: -1 });
 applicationSchema.index({ drive: 1, status: 1 });
+applicationSchema.index({ status: 1, appliedAt: 1, student: 1, drive: 1 });
 
 export const Application = mongoose.models.Application || mongoose.model("Application", applicationSchema);
 export default Application;

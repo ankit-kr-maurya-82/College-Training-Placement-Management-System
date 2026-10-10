@@ -70,7 +70,7 @@ export async function applyForDrive(req, res) {
     if (resumeUrl !== undefined && !validResumeUrl(resumeUrl)) return res.status(400).json({ message: "resumeUrl must be a valid HTTP(S) URL" });
     if (coverLetter !== undefined && (typeof coverLetter !== "string" || coverLetter.length > 10000)) return res.status(400).json({ message: "coverLetter must be a string of at most 10000 characters" });
     try {
-        const [student, drive] = await Promise.all([Student.findById(studentId), Drive.findById(driveId)]);
+        const [student, drive] = await Promise.all([req.studentAccount ?? Student.findById(studentId), Drive.findById(driveId)]);
         if (!student) return res.status(404).json({ message: "Student not found" });
         if (!drive) return res.status(404).json({ message: "Drive not found" });
         if (drive.status !== "Published") return res.status(409).json({ message: "This drive is not accepting applications" });

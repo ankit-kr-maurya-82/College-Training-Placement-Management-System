@@ -243,4 +243,13 @@ describe("student registration and login", { concurrency: false }, () => {
         assert.deepEqual(models.findOne.mock.calls[0].arguments, [{ email: "student@example.com" }]);
         assertNoWrites(models);
     });
+
+    it("denies login to a disabled student account", async (t) => {
+        const student = new Student({ name: "Disabled Student", email: "student@example.com", password: credentials.password.trim(), isActive: false });
+        stubDatabase(t, { findOne: async () => student });
+        const res = response();
+        await loginStudents({ body: { email: credentials.email, password: credentials.password } }, res);
+        assert.equal(res.statusCode, 403);
+        assert.deepEqual(res.body, { message: "Student account is disabled" });
+    });
 });

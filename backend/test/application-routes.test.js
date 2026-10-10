@@ -4,6 +4,7 @@ import { after, before, describe, it } from "node:test";
 import jwt from "jsonwebtoken";
 import { app } from "../src/app.js";
 import { Application } from "../src/models/application.model.js";
+import { Student } from "../src/models/student.model.js";
 
 const secret = "application-route-test-secret";
 const studentId = "507f1f77bcf86cd799439011";
@@ -62,6 +63,10 @@ describe("application route authentication", { concurrency: false }, () => {
     });
 
     it("serves the mounted student application endpoint using token identity", async (t) => {
+        t.mock.method(Student, "findById", () => {
+            const query = { select: () => query, lean: async () => ({ isActive: true }) };
+            return query;
+        });
         const find = t.mock.method(Application, "find", (filter) => {
             assert.deepEqual(filter, { student: studentId });
             const query = { sort: () => query, skip: () => query, limit: () => query, populate: () => query, lean: async () => [] };
@@ -73,5 +78,16 @@ describe("application route authentication", { concurrency: false }, () => {
         assert.equal(response.status, 200);
         assert.deepEqual(response.body.applications, []);
         assert.equal(find.mock.callCount(), 1);
+    });
+
+    it("rejects a disabled student even when their JWT has not expired", async (t) => {
+        t.mock.method(Student, "findById", () => {
+            const query = { select: () => query, lean: async () => ({ isActive: false }) };
+            return query;
+        });
+        const studentToken = jwt.sign({ studentId }, secret, { expiresIn: "1h" });
+        const response = await get(`${baseUrl}/my`, studentToken);
+        assert.equal(response.status, 403);
+        assert.deepEqual(response.body, { message: "Student account is disabled" });
     });
 });
