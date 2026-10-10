@@ -19,8 +19,13 @@ const driveSchema = new mongoose.Schema({
     driveDate: { type: Date },
     openings: { type: Number, min: 1, validate: { validator: Number.isInteger, message: "Openings must be a positive whole number" }, default: 1 },
     status: { type: String, enum: ["Draft", "Published", "Closed", "Cancelled"], default: "Draft", index: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    createdByCompany: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
 }, { timestamps: true });
+
+driveSchema.pre("validate", function () {
+    if (!this.createdBy && !this.createdByCompany) this.invalidate("createdBy", "A drive creator is required");
+});
 
 driveSchema.index({ status: 1, applicationDeadline: 1, createdAt: -1 });
 driveSchema.index({ status: 1, driveDate: 1, applicationDeadline: 1 });

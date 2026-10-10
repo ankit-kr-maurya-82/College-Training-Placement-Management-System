@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticateToken, requireActiveStudent, requireActiveStudentOrManager } from "../middlewares/auth.middleware.js";
+import { authenticateToken, requireActiveCompany, requireActiveStudent, requireActiveStudentOrManager } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
 import {
     applyForDrive,
@@ -12,12 +12,13 @@ import {
 
 const router = express.Router();
 const managers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
+const reviewers = [authenticateToken, authorizeRoles("ADMIN", "TPO", "COMPANY"), (req, res, next) => String(req.user?.role).toUpperCase() === "COMPANY" ? requireActiveCompany(req, res, next) : next()];
 
 router.post("/", authenticateToken, requireActiveStudent, applyForDrive);
 router.get("/my", authenticateToken, requireActiveStudent, getMyApplications);
-router.get("/", ...managers, getApplications);
+router.get("/", ...reviewers, getApplications);
 router.get("/:id", authenticateToken, requireActiveStudentOrManager, getApplicationById);
 router.patch("/:id/withdraw", authenticateToken, requireActiveStudent, withdrawApplication);
-router.patch("/:id/status", ...managers, updateApplicationStatus);
+router.patch("/:id/status", ...reviewers, updateApplicationStatus);
 
 export default router;

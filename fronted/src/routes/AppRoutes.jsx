@@ -14,6 +14,11 @@ import AdminApplications from '../pages/admin/Applications.jsx'
 import AdminStudents from '../pages/admin/Students.jsx'
 import AdminReports from '../pages/admin/Reports.jsx'
 import AdminStaff from '../pages/admin/Staff.jsx'
+import RecruiterDashboard from '../pages/recruiter/Dashboard.jsx'
+import RecruiterDrives from '../pages/recruiter/Drives.jsx'
+import RecruiterApplications from '../pages/recruiter/Applications.jsx'
+import RecruiterInterviews from '../pages/recruiter/Interviews.jsx'
+import RecruiterProfile from '../pages/recruiter/Profile.jsx'
 
 export default function AppRoutes() { 
     return <Shell>
@@ -21,6 +26,11 @@ export default function AppRoutes() {
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/company" element={<Protected role="COMPANY"><RecruiterDashboard /></Protected>} />
+                    <Route path="/company/drives" element={<Protected role="COMPANY"><RecruiterDrives /></Protected>} />
+                    <Route path="/company/applications" element={<Protected role="COMPANY"><RecruiterApplications /></Protected>} />
+                    <Route path="/company/interviews" element={<Protected role="COMPANY"><RecruiterInterviews /></Protected>} />
+                    <Route path="/company/profile" element={<Protected role="COMPANY"><RecruiterProfile /></Protected>} />
                     <Route path="/drives" element={<Drives />} />
                     <Route path="/drives/:id" element={<DriveDetails />} />
                     <Route path="/companies" element={<Companies />} />

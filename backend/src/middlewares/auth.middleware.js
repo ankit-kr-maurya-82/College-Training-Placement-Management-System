@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Student } from "../models/student.model.js";
+import { Company } from "../models/company.model.js";
 
 export function authenticateToken(req, res, next) {
     const authorization = req.get("authorization") ?? "";
@@ -42,4 +43,21 @@ export async function requireActiveStudent(req, res, next) {
 export function requireActiveStudentOrManager(req, res, next) {
     if (["ADMIN", "TPO"].includes(String(req.user?.role ?? "").toUpperCase())) return next();
     return requireActiveStudent(req, res, next);
+}
+
+export async function requireActiveCompany(req, res, next) {
+    const companyId = req.user?.companyId;
+    if (String(req.user?.role ?? "").toUpperCase() !== "COMPANY" || typeof companyId !== "string" || !/^[a-f\d]{24}$/i.test(companyId)) {
+        return res.status(403).json({ message: "A company account is required" });
+    }
+    try {
+        const company = await Company.findById(companyId).select("isActive name companyName").lean();
+        if (!company) return res.status(401).json({ message: "Company account not found" });
+        if (company.isActive === false) return res.status(403).json({ message: "Company account is disabled" });
+        req.company = company;
+        return next();
+    } catch (error) {
+        console.error("Error verifying company account:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 }

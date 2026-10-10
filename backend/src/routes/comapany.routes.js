@@ -7,9 +7,13 @@ import {
     removeCompany,
     loginCompany,
     registerCompany,
+    getCompanyDashboard,
+    getCompanyProfile,
+    updateCompanyProfile,
 } from "../controllers/company.controller.js";
-import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { authenticateToken, requireActiveCompany } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
+import { closeDrive, createDrive, deleteDrive, getManageDrives, publishDrive, updateDrive } from "../controllers/drive.controller.js";
 
 const router = express.Router();
 const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
@@ -17,6 +21,17 @@ const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
 // The legacy self-registration and login routes remain available.
 router.post("/register", registerCompany);
 router.post("/login", loginCompany);
+
+const companyAccount = [authenticateToken, authorizeRoles("COMPANY"), requireActiveCompany];
+router.get("/me/dashboard", ...companyAccount, getCompanyDashboard);
+router.get("/me/profile", ...companyAccount, getCompanyProfile);
+router.put("/me/profile", ...companyAccount, updateCompanyProfile);
+router.get("/me/drives", ...companyAccount, getManageDrives);
+router.post("/me/drives", ...companyAccount, createDrive);
+router.put("/me/drives/:id", ...companyAccount, updateDrive);
+router.delete("/me/drives/:id", ...companyAccount, deleteDrive);
+router.patch("/me/drives/:id/publish", ...companyAccount, publishDrive);
+router.patch("/me/drives/:id/close", ...companyAccount, closeDrive);
 
 router.post("/", ...companyManagers, createCompany);
 router.get("/", getCompanies);

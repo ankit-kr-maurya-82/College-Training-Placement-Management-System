@@ -60,6 +60,9 @@ function getCreatorId(user) {
     return typeof id === "string" && validId(id) ? id : null;
 }
 
+function isCompanyUser(user) { return String(user?.role ?? "").toUpperCase() === "COMPANY"; }
+function ownsDrive(drive, user) { return !isCompanyUser(user) || String(drive.company) === String(user.companyId); }
+
 function handleError(res, err, operation) {
     if (err?.name === "ValidationError" || err?.name === "CastError") return res.status(400).json({ message: "Invalid drive data" });
     console.error(`Error ${operation} drive:`, err);
@@ -67,14 +70,16 @@ function handleError(res, err, operation) {
 }
 
 export async function createDrive(req, res) {
-    const { input, error } = validateDriveInput(req.body ?? {});
+    const companyUser = isCompanyUser(req.user);
+    const { input, error } = validateDriveInput(companyUser ? { ...(req.body ?? {}), company: req.user.companyId } : (req.body ?? {}));
     if (error) return res.status(400).json({ message: error });
-    const createdBy = getCreatorId(req.user);
-    if (!createdBy) return res.status(401).json({ message: "Authenticated user identity is required" });
+    if (companyUser) input.company = req.user.companyId;
+    const createdBy = companyUser ? null : getCreatorId(req.user);
+    if (!companyUser && !createdBy) return res.status(401).json({ message: "Authenticated user identity is required" });
     try {
         const company = await Company.findOne({ _id: input.company, isActive: true });
         if (!company) return res.status(400).json({ message: "Company not found or inactive" });
-        const drive = await Drive.create({ ...input, createdBy, status: "Draft" });
+        const drive = await Drive.create({ ...input, ...(createdBy ? { createdBy } : { createdByCompany: input.company }), status: "Draft" });
         return res.status(201).json({ message: "Drive created successfully", drive });
     } catch (err) { return handleError(res, err, "creating"); }
 }
@@ -111,9 +116,10 @@ export async function getManageDrives(req, res) {
         return res.status(400).json({ message: "page must be positive and limit must be between 1 and 100" });
     }
     try {
+        const filter = isCompanyUser(req.user) ? { company: req.user.companyId } : {};
         const [drives, total] = await Promise.all([
-            Drive.find().populate("company", "name companyName logo location").sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
-            Drive.countDocuments({}),
+            Drive.find(filter).populate("company", "name companyName logo location").sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+            Drive.countDocuments(filter),
         ]);
         return res.status(200).json({ drives, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
     } catch (err) { return handleError(res, err, "retrieving manager drive inventory"); }
@@ -136,7 +142,9 @@ export async function updateDrive(req, res) {
     try {
         const drive = await Drive.findById(req.params.id);
         if (!drive) return res.status(404).json({ message: "Drive not found" });
+        if (!ownsDrive(drive, req.user)) return res.status(403).json({ message: "You cannot manage this drive" });
         if (!["Draft", "Published"].includes(drive.status)) return res.status(409).json({ message: "This drive can no longer be updated" });
+        if (isCompanyUser(req.user) && input.company && String(input.company) !== String(req.user.companyId)) return res.status(403).json({ message: "You cannot change the drive company" });
         if (input.company && !await Company.findOne({ _id: input.company, isActive: true })) return res.status(400).json({ message: "Company not found or inactive" });
         Object.assign(drive, input);
         await drive.save();
@@ -149,6 +157,7 @@ export async function publishDrive(req, res) {
     try {
         const drive = await Drive.findById(req.params.id);
         if (!drive) return res.status(404).json({ message: "Drive not found" });
+        if (!ownsDrive(drive, req.user)) return res.status(403).json({ message: "You cannot manage this drive" });
         if (drive.status !== "Draft") return res.status(409).json({ message: "Only draft drives can be published" });
         if (drive.applicationDeadline <= new Date()) return res.status(400).json({ message: "Application deadline must be in the future" });
         const company = await Company.findOne({ _id: drive.company, isActive: true });
@@ -164,6 +173,7 @@ export async function closeDrive(req, res) {
     try {
         const drive = await Drive.findById(req.params.id);
         if (!drive) return res.status(404).json({ message: "Drive not found" });
+        if (!ownsDrive(drive, req.user)) return res.status(403).json({ message: "You cannot manage this drive" });
         if (drive.status !== "Published") return res.status(409).json({ message: "Only published drives can be closed" });
         drive.status = "Closed";
         await drive.save();
@@ -174,8 +184,10 @@ export async function closeDrive(req, res) {
 export async function deleteDrive(req, res) {
     if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid drive ID" });
     try {
+        const existing = await Drive.findById(req.params.id);
+        if (!existing) return res.status(404).json({ message: "Drive not found" });
+        if (!ownsDrive(existing, req.user)) return res.status(403).json({ message: "You cannot manage this drive" });
         const drive = await Drive.findByIdAndDelete(req.params.id);
-        if (!drive) return res.status(404).json({ message: "Drive not found" });
         return res.status(200).json({ message: "Drive deleted successfully" });
     } catch (err) { return handleError(res, err, "deleting"); }
 }

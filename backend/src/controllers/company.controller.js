@@ -1,6 +1,8 @@
 import {Company} from '../models/company.model.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { Drive } from '../models/drive.model.js';
+import { Application } from '../models/application.model.js';
 
 const companyFields = ["name", "description", "website", "location", "industry", "hrEmail", "hrContact", "logo", "isActive"];
 const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -272,6 +274,7 @@ const loginCompany = async (req, res) => {
                 .status(401)
                 .json({ message: "Invalid email or password" });
         }
+        if (company.isActive === false) return res.status(403).json({ message: "Company account is disabled" });
         if (company.companyName !== companyName.trim()) {
             return res
                 .status(401)
@@ -302,6 +305,56 @@ const loginCompany = async (req, res) => {
 
     } catch(err){
         console.error("Error logging in company:", err)
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function getCompanyDashboard(req, res) {
+    const companyId = req.user?.companyId;
+    try {
+        const drives = await Drive.find({ company: companyId }).select("title status applicationDeadline driveDate createdAt").sort({ createdAt: -1 }).lean();
+        const driveIds = drives.map(({ _id }) => _id);
+        const [applicationCount, byStatus] = await Promise.all([
+            Application.countDocuments({ drive: { $in: driveIds } }),
+            Application.aggregate([{ $match: { drive: { $in: driveIds } } }, { $group: { _id: "$status", count: { $sum: 1 } } }]),
+        ]);
+        const stats = Object.fromEntries(byStatus.map(({ _id, count }) => [_id, count]));
+        return res.status(200).json({ dashboard: { company: { name: req.company?.name || req.company?.companyName }, drives, stats: { drives: drives.length, published: drives.filter((drive) => drive.status === "Published").length, applications: applicationCount, shortlisted: stats.Shortlisted ?? 0, selected: stats.Selected ?? 0 }, applicationsByStatus: stats } });
+    } catch (error) {
+        console.error("Error retrieving company dashboard:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function getCompanyProfile(req, res) {
+    try {
+        const company = await Company.findById(req.user.companyId).select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo isActive createdAt").lean();
+        if (!company) return res.status(404).json({ message: "Company not found" });
+        return res.status(200).json({ company });
+    } catch (error) {
+        console.error("Error retrieving company profile:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+export async function updateCompanyProfile(req, res) {
+    const allowed = ["hrName", "hrPhoneNumber", "description", "website"];
+    const input = {};
+    for (const field of allowed) if (Object.hasOwn(req.body ?? {}, field)) input[field] = req.body[field];
+    if (!Object.keys(input).length) return res.status(400).json({ message: "At least one profile field is required" });
+    for (const [field, value] of Object.entries(input)) {
+        if (typeof value !== "string") return res.status(400).json({ message: `${field} must be a string` });
+        input[field] = value.trim();
+    }
+    if (input.website && !validUrl.test(input.website)) return res.status(400).json({ message: "Website must be a valid URL" });
+    try {
+        const company = await Company.findByIdAndUpdate(req.user.companyId, { $set: input }, { new: true, runValidators: true })
+            .select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo isActive").lean();
+        if (!company) return res.status(404).json({ message: "Company not found" });
+        return res.status(200).json({ message: "Profile updated successfully", company });
+    } catch (error) {
+        if (["ValidationError", "CastError"].includes(error.name)) return res.status(400).json({ message: "Invalid profile data" });
+        console.error("Error updating company profile:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }

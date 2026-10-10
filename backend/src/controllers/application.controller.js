@@ -35,6 +35,7 @@ function managerIdFrom(user) {
 function isManager(user) {
     return ["ADMIN", "TPO"].includes(String(user?.role ?? "").toUpperCase());
 }
+function isCompany(user) { return String(user?.role ?? "").toUpperCase() === "COMPANY" && validId(user?.companyId); }
 
 function safeError(res, error, operation) {
     if (error?.code === 11000) return res.status(409).json({ message: "You have already applied to this drive" });
@@ -102,15 +103,26 @@ export async function getMyApplications(req, res) {
 
 export async function getApplications(req, res) {
     const filter = {};
-    if (req.query.status) {
-        if (!statuses.includes(String(req.query.status))) return res.status(400).json({ message: "Invalid application status" });
-        filter.status = String(req.query.status);
-    }
-    for (const key of ["student", "drive"]) {
-        if (req.query[key]) {
-            if (!validId(String(req.query[key]))) return res.status(400).json({ message: `Invalid ${key} ID` });
-            filter[key] = String(req.query[key]);
+    try {
+        if (isCompany(req.user)) {
+            const ownDrives = await Drive.find({ company: req.user.companyId }).select("_id").lean();
+            filter.drive = { $in: ownDrives.map(({ _id }) => _id) };
         }
+        if (req.query.status) {
+            if (!statuses.includes(String(req.query.status))) return res.status(400).json({ message: "Invalid application status" });
+            filter.status = String(req.query.status);
+        }
+        for (const key of ["student", "drive"]) {
+            if (req.query[key]) {
+                if (!validId(String(req.query[key]))) return res.status(400).json({ message: `Invalid ${key} ID` });
+                if (key === "drive" && isCompany(req.user)) {
+                    if (!filter.drive.$in.some((id) => String(id) === String(req.query[key]))) return res.status(403).json({ message: "You cannot access applications for this drive" });
+                    filter.drive = String(req.query[key]);
+                } else filter[key] = String(req.query[key]);
+            }
+        }
+    } catch (error) {
+        return safeError(res, error, "listing");
     }
     return listApplications(req, res, filter);
 }
@@ -134,11 +146,13 @@ export async function getApplicationById(req, res) {
     if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid application ID" });
     const studentId = studentIdFrom(req.user);
     const manager = isManager(req.user);
-    if (!studentId && !manager) return res.status(403).json({ message: "A student or Admin/TPO account is required" });
+    const companyUser = isCompany(req.user);
+    if (!studentId && !manager && !companyUser) return res.status(403).json({ message: "An authorized account is required" });
     try {
         const application = await Application.findById(req.params.id).populate(drivePopulation).populate(studentPopulation).lean();
         if (!application) return res.status(404).json({ message: "Application not found" });
-        if (!manager && String(application.student?._id ?? application.student) !== studentId) return res.status(403).json({ message: "You cannot access this application" });
+        if (!manager && !companyUser && String(application.student?._id ?? application.student) !== studentId) return res.status(403).json({ message: "You cannot access this application" });
+        if (companyUser && String(application.drive?.company?._id ?? application.drive?.company) !== req.user.companyId) return res.status(403).json({ message: "You cannot access this application" });
         return res.status(200).json({ application });
     } catch (error) { return safeError(res, error, "retrieving"); }
 }
@@ -165,11 +179,16 @@ export async function updateApplicationStatus(req, res) {
     const { status, note } = req.body ?? {};
     if (!managerStatuses.has(status)) return res.status(400).json({ message: "Invalid application status" });
     if (note !== undefined && (typeof note !== "string" || note.length > 2000)) return res.status(400).json({ message: "note must be a string of at most 2000 characters" });
-    const changedBy = managerIdFrom(req.user);
+    const companyUser = isCompany(req.user);
+    const changedBy = companyUser ? req.user.companyId : managerIdFrom(req.user);
     if (!changedBy) return res.status(401).json({ message: "Authenticated user identity is required" });
     try {
         const application = await Application.findById(req.params.id);
         if (!application) return res.status(404).json({ message: "Application not found" });
+        if (companyUser) {
+            const drive = await Drive.findById(application.drive).select("company").lean();
+            if (!drive || String(drive.company) !== req.user.companyId) return res.status(403).json({ message: "You cannot manage this application" });
+        }
         if (!transitions[application.status]?.has(status)) return res.status(409).json({ message: `Cannot change application status from ${application.status} to ${status}` });
         application.status = status;
         application.statusHistory.push({ status, changedBy, changedAt: new Date(), ...(note?.trim() ? { note: note.trim() } : {}) });

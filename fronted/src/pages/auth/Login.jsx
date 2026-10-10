@@ -19,7 +19,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  if (user) return <Navigate to={user.role === 'COMPANY' ? '/' : ['ADMIN', 'TPO'].includes(user.role) ? '/admin' : '/'} replace />
+  if (user) return <Navigate to={user.role === 'COMPANY' ? '/company' : ['ADMIN', 'TPO'].includes(user.role) ? '/admin' : '/'} replace />
 
   async function submit(event) {
     event.preventDefault()
@@ -30,7 +30,7 @@ export default function Login() {
         ? { companyName: form.companyName, hrEmail: form.email, hrPassword: form.password }
         : { email: form.email, password: form.password }
       await login(credentials, accountType)
-      navigate(accountType === 'MANAGER' ? '/admin' : '/')
+      navigate(accountType === 'MANAGER' ? '/admin' : accountType === 'COMPANY' ? '/company' : '/')
     } catch (requestError) {
       setError(requestError.message)
     } finally {
