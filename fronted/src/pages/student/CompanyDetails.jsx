@@ -1,0 +1,7 @@
+import { useEffect, useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { api } from '../../services/api.js'
+import { Busy, Notice } from '../../components/Feedback.jsx'
+import { companyName } from '../../utils/format.js'
+
+export default function CompanyDetail(){const {id}=useParams();const [company,setCompany]=useState(null);const [error,setError]=useState('');useEffect(()=>{api.get(`/companies/${id}`).then(r=>setCompany(r.company)).catch(e=>setError(e.message))},[id]);if(error)return <section className="section"><Notice error={error}/><Link to="/companies">Back to companies</Link></section>;if(!company)return <Busy/>;return <section className="detail-layout"><article className="detail-main"><Link className="back-link" to="/companies">← Company directory</Link><p className="eyebrow">EMPLOYER PROFILE</p><h1>{companyName(company)}</h1><p className="lead">{company.industry} · {company.location}</p><div className="detail-block"><h2>About the company</h2><p className="long-copy">{company.description||'Company information is not available yet.'}</p>{company.website&&<p><a className="text-link" href={company.website} target="_blank" rel="noreferrer">Visit company website ↗</a></p>}</div></article><aside className="apply-panel"><p className="eyebrow">OPEN OPPORTUNITIES</p><h2>Explore roles here</h2><p className="muted">See published placement drives from {companyName(company)}.</p><Link className="button full" to={`/drives?company=${company._id}`}>View open drives</Link></aside></section>}
