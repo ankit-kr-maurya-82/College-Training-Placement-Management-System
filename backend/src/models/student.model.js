@@ -15,6 +15,11 @@ const studentSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
         },
+        phone: {
+            type: String,
+            trim: true,
+            maxlength: 24,
+        },
         googleId: {
             type: String,
             unique: true,
