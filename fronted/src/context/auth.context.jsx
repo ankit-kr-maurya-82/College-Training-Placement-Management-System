@@ -48,6 +48,10 @@ export function AuthProvider({ children }) {
     if (!endpoint) throw new Error('Choose a valid account type.')
     saveSession(await api.post(endpoint, credentials))
   }
+  async function loginWithGoogle(credential) {
+    if (typeof credential !== 'string' || !credential) throw new Error('A Google credential is required.')
+    saveSession(await api.post('/auth/google', { credential }))
+  }
   async function register(details) { saveSession(await api.post('/students/register', details)) }
   async function registerCompany(details) { return api.post('/companies/register', details) }
   function logout() {
@@ -62,7 +66,6 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener('placement:unauthorized', reset)
   }, [])
 
-  const value = useMemo(() => ({ token, user, login, register, registerCompany, logout, isManager: ['ADMIN', 'TPO'].includes(String(user?.role || '').toUpperCase()) }), [token, user])
+  const value = useMemo(() => ({ token, user, login, loginWithGoogle, register, registerCompany, logout, isManager: ['ADMIN', 'TPO'].includes(String(user?.role || '').toUpperCase()) }), [token, user])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-

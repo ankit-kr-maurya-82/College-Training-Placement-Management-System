@@ -34,8 +34,15 @@ function response() {
 }
 
 function stubDatabase(t, overrides = {}) {
+    const findOne = overrides.findOne ?? (async () => null);
     return {
-        findOne: t.mock.method(Student, "findOne", overrides.findOne ?? (async () => null)),
+        findOne: t.mock.method(Student, "findOne", (...args) => {
+            const result = Promise.resolve(findOne(...args));
+            return {
+                select() { return this; },
+                then(resolve, reject) { return result.then(resolve, reject); },
+            };
+        }),
         create: t.mock.method(Student, "create", async () => {
             throw new Error("Registration must not persist through Student.create");
         }),

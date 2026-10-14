@@ -1,21 +1,26 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/auth.js'
-import { Notice } from '../../components/Feedback.jsx'
+import { Busy, Notice } from '../../components/Feedback.jsx'
+import { GoogleSignInButton } from '../../components/GoogleSignInButton.jsx'
 
 export default function Register() {
-  const { user, register, registerCompany } = useAuth()
+  const { user, register, registerCompany, loginWithGoogle } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [accountType, setAccountType] = useState(searchParams.get('role') === 'COMPANY' ? 'COMPANY' : 'STUDENT')
   const [form, setForm] = useState({ name: '', email: '', password: '', companyName: '', hrName: '', hrPhoneNumber: '', location: '', website: '', description: '' })
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [googleBusy, setGoogleBusy] = useState(false)
+  const processing = useRef(false)
 
   if (user) return <Navigate to="/" replace />
 
   async function submit(event) {
     event.preventDefault()
+    if (processing.current) return
+    processing.current = true
     setBusy(true)
     setError('')
     try {
@@ -38,8 +43,31 @@ export default function Register() {
     } catch (requestError) {
       setError(requestError.message)
     } finally {
+      processing.current = false
       setBusy(false)
     }
+  }
+
+  async function signInWithGoogle(credential) {
+    if (processing.current) return
+    processing.current = true
+    setGoogleBusy(true)
+    setBusy(true)
+    setError('')
+    try {
+      await loginWithGoogle(credential)
+      navigate('/')
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      processing.current = false
+      setGoogleBusy(false)
+      setBusy(false)
+    }
+  }
+
+  function googleSignInError() {
+    setError('Google sign-in was cancelled or could not be started. Try again.')
   }
 
   return <section className="auth-card auth-card-wide">
@@ -50,6 +78,11 @@ export default function Register() {
       <button type="button" role="tab" aria-selected={accountType === 'COMPANY'} className={accountType === 'COMPANY' ? 'active' : ''} onClick={() => { setAccountType('COMPANY'); setError('') }}>Company</button>
     </div>
     <Notice error={error}/>
+    {accountType === 'STUDENT' && <>
+      <GoogleSignInButton disabled={busy} onCredential={signInWithGoogle} onError={googleSignInError}/>
+      {googleBusy && <Busy label="Signing in with Google…"/>}
+      <p className="auth-divider">or sign up with email</p>
+    </>}
     <form className="form-stack" onSubmit={submit}>
       {accountType === 'STUDENT' ? <label>Full name<input required autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}/></label> : <>
         <label>Company name<input required autoComplete="organization" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })}/></label>

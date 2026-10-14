@@ -1,0 +1,4 @@
+.google-sign-in{display:flex;justify-content:center;margin:14px 0 6px}
+.google-sign-in.is-disabled{pointer-events:none;opacity:.55}
+.auth-divider{display:flex;align-items:center;gap:12px;color:#68766d;font-size:12px;margin:12px 0}
+.auth-divider::before,.auth-divider::after{content:'';height:1px;flex:1;background:#e8ebe4}

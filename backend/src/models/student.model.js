@@ -15,9 +15,15 @@ const studentSchema = new mongoose.Schema(
             trim: true,
             lowercase: true,
         },
+        googleId: {
+            type: String,
+            unique: true,
+            sparse: true,
+            trim: true,
+        },
         password: {
             type: String,
-            required: true,
+            select: false,
         },
         isActive: {
             type: Boolean,
@@ -28,6 +34,7 @@ const studentSchema = new mongoose.Schema(
             type: String,
             // required: true,
             unique: true,
+            sparse: true,
             trim: true,
             uppercase: true,
         },

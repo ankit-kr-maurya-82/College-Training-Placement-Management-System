@@ -8,8 +8,16 @@ app.set("view engine", "ejs")
 app.set("views", fileURLToPath(new URL("./views/", import.meta.url)))
 app.get("/", (req, res) => res.redirect("/api/v1/students/register"))
 
+const allowedOrigins = (process.env.CORS_ORIGIN
+    ?? (process.env.NODE_ENV === "production" ? "" : "http://localhost:5173"))
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin(origin, callback) {
+        callback(null, !origin || allowedOrigins.includes(origin));
+    },
     credentials: true
 }))
 

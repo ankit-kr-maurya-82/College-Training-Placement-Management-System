@@ -3,6 +3,21 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { randomBytes, createHash } from "node:crypto";
 
+export function createStudentToken(student) {
+    return jwt.sign(
+        { studentId: student._id.toString(), email: student.email },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" },
+    );
+}
+
+export function publicStudent(student) {
+    return {
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+    };
+}
 
 
 
@@ -38,34 +53,25 @@ const registerStudent = async (req, res) => {
         });
 
         // Generate a JWT token for the registered student
-        const token = jwt.sign(
-            {
-                studentId: newStudent._id,
-                email: newStudent.email,
-            },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );  
+        const token = createStudentToken(newStudent);
 
         await newStudent.save();
 
         return res.status(201).json({
             message: "Student registered successfully",
-            student: {
-                _id: newStudent._id,
-                name: newStudent.name,
-                email: newStudent.email,
-            },
+            student: publicStudent(newStudent),
             token,
         });
         
 
 
     } catch (err) {
+        if (err.code === 11000) {
+            return res.status(409).json({ message: "An account with this email already exists" });
+        }
         console.error("Error registering student:", err);
         return res.status(500).json({
             message: "Error registering student",
-            error: err.message
         });
     }
 
@@ -75,7 +81,7 @@ const registerStudent = async (req, res) => {
 
 const showStudents = async (req, res) => {
     try {
-        const students = await Student.find().select("name email password").sort({ createdAt: -1 }).lean();
+        const students = await Student.find().select("name email").sort({ createdAt: -1 }).lean();
         return res
             .render("students", { students, error: null });
     } catch (err) {
@@ -128,7 +134,7 @@ const loginStudents = async (req, res) => {
                 .json({ message: "Password is required" });
         }
 
-        const student = await Student.findOne({ email: email.trim().toLowerCase() });
+        const student = await Student.findOne({ email: email.trim().toLowerCase() }).select("+password");
         if (!student) {
             return res
                 .status(401)
@@ -149,19 +155,11 @@ const loginStudents = async (req, res) => {
                 .json({ message: "Invalid password" });
         }
 
-        const token = jwt.sign(
-            { studentId: student._id, email: student.email },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" },
-        );
+        const token = createStudentToken(student);
 
         return res.status(200).json({
             message: "Student logged in successfully",
-            student: {
-                _id: student._id,
-                name: student.name,
-                email: student.email,
-            },
+            student: publicStudent(student),
             token,
         });
     } catch (err) {
