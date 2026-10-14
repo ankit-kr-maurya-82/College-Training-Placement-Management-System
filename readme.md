@@ -37,7 +37,8 @@ Unlinked accounts with a matching email are not linked automatically.
 4. Create an OAuth client ID for a **Web application**.
 5. Add the actual frontend origins to **Authorized JavaScript origins**, such as
    `http://localhost:5173` for local Vite development and your production
-   frontend origin (for example, `https://placement.example.edu`).
+   frontend origin (for example, `https://placement.example.edu`). An origin is
+   only scheme, host, and optional port—do not include a path or trailing slash.
 6. Copy the same OAuth client ID to `GOOGLE_CLIENT_ID` in `backend/.env` and
    `VITE_GOOGLE_CLIENT_ID` in `fronted/.env.local`. These IDs must match.
    The frontend client ID is public; do not put a client secret or other secret
@@ -50,6 +51,12 @@ Unlinked accounts with a matching email are not linked automatically.
    an OAuth redirect URI. Do not configure one unless the flow is changed.
 9. Restart the backend and frontend after setting the environment variables,
    then test the Google button on both student login and registration.
+
+The Vite development server sets `Cross-Origin-Opener-Policy:
+same-origin-allow-popups` for Google's popup flow. Production hosting must
+serve the same response header. If Google reports that an origin is not
+allowed, add the exact origin shown in the browser address bar to the OAuth
+client's Authorized JavaScript origins and wait for the change to take effect.
 
 No Google Cloud credentials are included in this repository. Copy
 `backend/.env.example` to a separate local file only if you need a template;
