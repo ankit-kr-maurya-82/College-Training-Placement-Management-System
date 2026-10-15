@@ -55,13 +55,29 @@ let transportFactory = async (options) => (await import("nodemailer")).createTra
 let cachedTransport;
 export function setTransportFactory(factory) { transportFactory = factory; cachedTransport = undefined; }
 
-export async function sendVacancyEmail({ to, drive, company, applyUrl }) {
+function getSmtpOptions() {
     const { SMTP_HOST = "smtp.gmail.com", SMTP_PORT = "465", SMTP_USER, SMTP_PASS } = process.env;
     const from = process.env.EMAIL_FROM || process.env.SMTP_FROM || SMTP_USER;
     const port = Number(SMTP_PORT);
     const secureSetting = process.env.SMTP_SECURE?.toLowerCase();
     if (!SMTP_HOST || !Number.isInteger(port) || port < 1 || port > 65535 || !SMTP_USER || !SMTP_PASS || !from || (secureSetting && !["true", "false"].includes(secureSetting))) throw new Error("Email delivery is not configured");
     const secure = secureSetting == null ? port === 465 : secureSetting === "true";
-    cachedTransport ??= await transportFactory({ host: SMTP_HOST, port, secure, auth: { user: SMTP_USER, pass: SMTP_PASS }, connectionTimeout: 15000, socketTimeout: 30000 });
-    return cachedTransport.sendMail({ from, to, ...createVacancyEmail(drive, company, applyUrl) });
+    return { from, options: { host: SMTP_HOST, port, secure, auth: { user: SMTP_USER, pass: SMTP_PASS }, connectionTimeout: 15000, socketTimeout: 30000 } };
+}
+
+async function getTransport() {
+    const { options } = getSmtpOptions();
+    cachedTransport ??= await transportFactory(options);
+    return cachedTransport;
+}
+
+export async function verifySmtpConnection() {
+    const transport = await getTransport();
+    return transport.verify();
+}
+
+export async function sendVacancyEmail({ to, drive, company, applyUrl }) {
+    const { from } = getSmtpOptions();
+    const transport = await getTransport();
+    return transport.sendMail({ from, to, ...createVacancyEmail(drive, company, applyUrl) });
 }
