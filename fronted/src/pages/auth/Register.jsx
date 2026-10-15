@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/auth.js'
 import { Busy, Notice } from '../../components/Feedback.jsx'
 import { GoogleSignInButton } from '../../components/GoogleSignInButton.jsx'
+import { Eye, EyeOff, LockKeyhole, Sparkles } from 'lucide-react'
 
 export default function Register() {
   const { user, register, registerCompany, loginWithGoogle } = useAuth()
@@ -13,6 +14,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [googleBusy, setGoogleBusy] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const processing = useRef(false)
 
   if (user) return <Navigate to="/" replace />
@@ -70,7 +72,11 @@ export default function Register() {
     setError('Google sign-in was cancelled or could not be started. Try again.')
   }
 
-  return <section className="auth-card auth-card-wide">
+  const passwordChecks = [form.password.length >= 8, /[A-Z]/.test(form.password), /[0-9]/.test(form.password)]
+  const passwordScore = passwordChecks.filter(Boolean).length
+
+  return <section className="auth-card auth-card-wide auth-register">
+    <div className="auth-welcome"><span className="auth-welcome-icon"><Sparkles size={20}/></span><span>BUILD YOUR NEXT OPPORTUNITY</span></div>
     <p className="eyebrow">GET STARTED</p>
     <h1>{accountType === 'COMPANY' ? 'Register your company' : 'Create your student account'}</h1>
     <div className="auth-switch" role="tablist" aria-label="Account type">
@@ -89,7 +95,7 @@ export default function Register() {
         <label>HR contact name<input required autoComplete="name" value={form.hrName} onChange={(e) => setForm({ ...form, hrName: e.target.value })}/></label>
       </>}
       <label>{accountType === 'COMPANY' ? 'HR email' : 'Email'}<input required type="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}/></label>
-      <label>Password<input required type="password" minLength="8" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}/></label>
+      <label>Password<div className="password-field"><LockKeyhole size={16}/><input required type={showPassword ? 'text' : 'password'} minLength="8" autoComplete="new-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}/><button type="button" className="password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17}/> : <Eye size={17}/>}</button></div><span className="password-hint">Use 8+ characters. Add a number and uppercase letter for a stronger password.</span><span className="password-meter" aria-label={`Password strength: ${passwordScore} of 3`}><i className={passwordScore > 0 ? `level-${passwordScore}` : ''}/><i className={passwordScore > 1 ? `level-${passwordScore}` : ''}/><i className={passwordScore > 2 ? `level-${passwordScore}` : ''}/></span></label>
       {accountType === 'COMPANY' && <>
         <label>HR phone number<input required type="tel" autoComplete="tel" value={form.hrPhoneNumber} onChange={(e) => setForm({ ...form, hrPhoneNumber: e.target.value })}/></label>
         <label>Company location<input required value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}/></label>
