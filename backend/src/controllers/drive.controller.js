@@ -169,11 +169,22 @@ export async function publishDrive(req, res) {
         if (!drive) return res.status(409).json({ message: "Only draft drives can be published" });
         let notificationsQueued = true;
         try {
-            await DriveNotificationJob.updateOne({ drive: drive._id }, { $setOnInsert: { drive: drive._id, status: "PENDING" } }, { upsert: true });
+            const queueJob = await DriveNotificationJob.findOneAndUpdate(
+                { drive: drive._id },
+                { $setOnInsert: { drive: drive._id, status: "PENDING" } },
+                { upsert: true, returnDocument: "after", setDefaultsOnInsert: true },
+            );
+            if (!queueJob) throw new Error("Notification job was not returned after enqueue");
+            notificationsQueued = ["PENDING", "PROCESSING"].includes(queueJob.status);
+            console.info("Vacancy notification queued:", JSON.stringify({
+                driveId: String(drive._id),
+                jobId: queueJob ? String(queueJob._id) : undefined,
+                queueState: queueJob?.status || "UNKNOWN",
+            }));
         } catch (queueError) {
             if (queueError?.code !== 11000) {
                 notificationsQueued = false;
-                console.error("Could not enqueue vacancy notifications: Queue storage unavailable");
+                console.error("Could not enqueue vacancy notifications:", JSON.stringify({ driveId: String(drive._id), queueState: "UNAVAILABLE" }));
             }
         }
         return res.status(200).json({ message: "Drive published successfully", drive, notificationsQueued });

@@ -118,7 +118,7 @@ describe("drive management", { concurrency: false }, () => {
         let document = driveDocument();
         t.mock.method(Drive, "findById", async () => document);
         t.mock.method(Drive, "findOneAndUpdate", async (filter) => { assert.equal(filter.status, "Draft"); document.status = "Published"; return document; });
-        const enqueue = t.mock.method(DriveNotificationJob, "updateOne", async () => ({ acknowledged: true }));
+        const enqueue = t.mock.method(DriveNotificationJob, "findOneAndUpdate", async () => ({ _id: "notification-job", status: "PENDING" }));
         t.mock.method(Company, "findOne", async () => ({ _id: id, isActive: true }));
         let res = response();
         await publishDrive({ params: { id } }, res);
@@ -152,7 +152,7 @@ describe("drive management", { concurrency: false }, () => {
     it("prevents a company from publishing another company's drive", async (t) => {
         t.mock.method(Drive, "findById", async () => driveDocument({ company: "507f1f77bcf86cd799439099" }));
         const companyLookup = t.mock.method(Company, "findOne", async () => assert.fail("foreign drive must not be published"));
-        const enqueue = t.mock.method(DriveNotificationJob, "updateOne", async () => assert.fail("foreign drive must not be queued"));
+        const enqueue = t.mock.method(DriveNotificationJob, "findOneAndUpdate", async () => assert.fail("foreign drive must not be queued"));
         const res = response();
         await publishDrive({ params: { id }, user: { role: "COMPANY", companyId: id } }, res);
         assert.equal(res.statusCode, 403);
@@ -165,7 +165,7 @@ describe("drive management", { concurrency: false }, () => {
         t.mock.method(Drive, "findById", async () => document);
         t.mock.method(Drive, "findOneAndUpdate", async () => { document.status = "Published"; return document; });
         t.mock.method(Company, "findOne", async () => ({ _id: id, isActive: true }));
-        t.mock.method(DriveNotificationJob, "updateOne", async () => { throw new Error("database unavailable"); });
+        t.mock.method(DriveNotificationJob, "findOneAndUpdate", async () => { throw new Error("database unavailable"); });
         const res = response();
         await publishDrive({ params: { id } }, res);
         assert.equal(res.statusCode, 200);

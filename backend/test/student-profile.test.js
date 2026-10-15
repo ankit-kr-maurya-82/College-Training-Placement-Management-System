@@ -65,6 +65,9 @@ describe("student profile routes", { concurrency: false }, () => {
                     course: "B.Tech",
                     graduationYear: null,
                     cgpa: null,
+                    activeBacklogs: null,
+                    tenthPercentage: null,
+                    twelfthPercentage: null,
                     skills: [],
                     resumeUrl: "",
                 }),
@@ -85,6 +88,9 @@ describe("student profile routes", { concurrency: false }, () => {
         assert.equal(response.status, 200);
         assert.equal(response.body.student._id, firstStudentId);
         assert.equal(response.body.student.email, "student@example.com");
+        assert.equal(response.body.student.activeBacklogs, null);
+        assert.equal(response.body.student.tenthPercentage, null);
+        assert.equal(response.body.student.twelfthPercentage, null);
         assert.equal(find.mock.callCount(), 1);
     });
 
@@ -108,6 +114,9 @@ describe("student profile routes", { concurrency: false }, () => {
                     course: "B.Tech",
                     graduationYear: 2028,
                     cgpa: 8.5,
+                    activeBacklogs: 0,
+                    tenthPercentage: 91.5,
+                    twelfthPercentage: 88,
                     skills: ["JavaScript", "Node.js"],
                     resumeUrl: "https://example.com/resume.pdf",
                 }),
@@ -122,6 +131,9 @@ describe("student profile routes", { concurrency: false }, () => {
             course: "B.Tech",
             graduationYear: 2028,
             cgpa: 8.5,
+            activeBacklogs: 0,
+            tenthPercentage: 91.5,
+            twelfthPercentage: 88,
             skills: [" JavaScript ", "Node.js", "javascript"],
             resumeUrl: "https://example.com/resume.pdf",
         });
@@ -132,6 +144,46 @@ describe("student profile routes", { concurrency: false }, () => {
         assert.equal(update.name, "Updated Student");
         assert.equal(response.body.student.cgpa, 8.5);
         assert.equal(response.body.student.phone, "+1 555 555 5555");
+        assert.equal(update.activeBacklogs, 0);
+        assert.equal(update.tenthPercentage, 91.5);
+        assert.equal(update.twelfthPercentage, 88);
+        assert.equal(response.body.student.activeBacklogs, 0);
+        assert.equal(response.body.student.tenthPercentage, 91.5);
+        assert.equal(response.body.student.twelfthPercentage, 88);
+    });
+
+    it("clears optional academic fields with null or empty values", async (t) => {
+        mockCurrentStudent(t);
+        let update;
+        t.mock.method(Student, "findByIdAndUpdate", (id, changes) => {
+            assert.equal(id, firstStudentId);
+            update = changes.$set;
+            const query = {
+                select: () => query,
+                lean: async () => ({ _id: id, name: "Student Name", email: "student@example.com", ...update }),
+            };
+            return query;
+        });
+
+        const response = await request("PUT", {
+            graduationYear: "",
+            cgpa: null,
+            activeBacklogs: "",
+            tenthPercentage: null,
+            twelfthPercentage: "",
+        });
+
+        assert.equal(response.status, 200);
+        assert.deepEqual(update, {
+            graduationYear: null,
+            cgpa: null,
+            activeBacklogs: null,
+            tenthPercentage: null,
+            twelfthPercentage: null,
+        });
+        assert.equal(response.body.student.activeBacklogs, null);
+        assert.equal(response.body.student.tenthPercentage, null);
+        assert.equal(response.body.student.twelfthPercentage, null);
     });
 
     it("rejects invalid CGPA, graduation year, skills, and insecure resume URLs", async (t) => {
@@ -141,6 +193,12 @@ describe("student profile routes", { concurrency: false }, () => {
         });
         for (const [body, message] of [
             [{ cgpa: 10.1 }, "CGPA must be a number between 0 and 10"],
+            [{ activeBacklogs: -1 }, "Active backlogs must be a non-negative whole number"],
+            [{ activeBacklogs: 1.5 }, "Active backlogs must be a non-negative whole number"],
+            [{ activeBacklogs: "2" }, "activeBacklogs must be a valid number"],
+            [{ tenthPercentage: 100.1 }, "tenthPercentage must be a number between 0 and 100"],
+            [{ twelfthPercentage: -0.1 }, "twelfthPercentage must be a number between 0 and 100"],
+            [{ tenthPercentage: "85" }, "tenthPercentage must be a valid number"],
             [{ graduationYear: 2028.5 }, /Graduation year must be a whole year/],
             [{ skills: [" "] }, /Skills must be a list/],
             [{ resumeUrl: "http://example.com/resume.pdf" }, "Resume URL must be a valid HTTPS URL"],

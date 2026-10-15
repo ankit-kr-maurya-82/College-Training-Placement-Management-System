@@ -1,7 +1,8 @@
 import { Student } from "../models/student.model.js";
 
 const profileFields = new Set([
-    "name", "phone", "department", "course", "graduationYear", "cgpa", "skills", "resumeUrl",
+    "name", "phone", "department", "course", "graduationYear", "cgpa", "activeBacklogs",
+    "tenthPercentage", "twelfthPercentage", "skills", "resumeUrl",
 ]);
 const currentYear = () => new Date().getFullYear();
 const phonePattern = /^\+?[0-9][0-9\s().-]{6,22}$/;
@@ -16,6 +17,9 @@ function profileFrom(student) {
         course: student.course ?? "",
         graduationYear: student.graduationYear ?? null,
         cgpa: student.cgpa ?? null,
+        activeBacklogs: student.activeBacklogs ?? null,
+        tenthPercentage: student.tenthPercentage ?? null,
+        twelfthPercentage: student.twelfthPercentage ?? null,
         skills: student.skills ?? [],
         resumeUrl: student.resumeUrl ?? "",
     };
@@ -52,23 +56,25 @@ function validateProfile(body) {
             continue;
         }
 
-        if (key === "graduationYear") {
+        if (["graduationYear", "activeBacklogs", "cgpa", "tenthPercentage", "twelfthPercentage"].includes(key)) {
             if (value === null || value === "") {
                 updates[key] = null;
-            } else if (!Number.isInteger(value) || value < 1900 || value > currentYear() + 10) {
-                return { message: `Graduation year must be a whole year between 1900 and ${currentYear() + 10}` };
             } else {
-                updates[key] = value;
-            }
-            continue;
-        }
-
-        if (key === "cgpa") {
-            if (value === null || value === "") {
-                updates[key] = null;
-            } else if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 10) {
-                return { message: "CGPA must be a number between 0 and 10" };
-            } else {
+                if (typeof value !== "number" || !Number.isFinite(value)) {
+                    return { message: `${key} must be a valid number` };
+                }
+                if (key === "graduationYear" && (!Number.isInteger(value) || value < 1900 || value > currentYear() + 10)) {
+                    return { message: `Graduation year must be a whole year between 1900 and ${currentYear() + 10}` };
+                }
+                if (key === "activeBacklogs" && (!Number.isInteger(value) || value < 0)) {
+                    return { message: "Active backlogs must be a non-negative whole number" };
+                }
+                if (key === "cgpa" && (value < 0 || value > 10)) {
+                    return { message: "CGPA must be a number between 0 and 10" };
+                }
+                if (["tenthPercentage", "twelfthPercentage"].includes(key) && (value < 0 || value > 100)) {
+                    return { message: `${key} must be a number between 0 and 100` };
+                }
                 updates[key] = value;
             }
             continue;
@@ -104,7 +110,7 @@ export async function updateMyStudentProfile(req, res) {
             req.user.studentId,
             { $set: updates },
             { returnDocument: "after", runValidators: true },
-        ).select("name email phone department course graduationYear cgpa skills resumeUrl").lean();
+        ).select("name email phone department course graduationYear cgpa activeBacklogs tenthPercentage twelfthPercentage skills resumeUrl").lean();
         if (!student) return res.status(404).json({ message: "Student profile not found" });
         return res.status(200).json({ message: "Student profile updated successfully", student: profileFrom(student) });
     } catch (error) {

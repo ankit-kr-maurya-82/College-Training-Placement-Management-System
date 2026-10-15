@@ -12,16 +12,18 @@ dotenv.config({
 connectDB()
 .then(async()=> {
     await provisionTpoFromEnvironment();
-    startDriveNotificationWorker().catch((error) => {
-        console.error("Vacancy notification worker could not start:", error?.name || "database initialization failed");
-    });
+    await startDriveNotificationWorker();
     const port = process.env.PORT || 5000;
     app.listen(port, () => {
-        console.log(`Server is running at port : ${port}`);
+        console.log(`Server is running at port : ${port} (process ${process.pid})`);
         
     })
 })
 .catch((err)=>{
-    console.error("Backend startup failed:", err.message);
+    console.error("Backend startup failed:", JSON.stringify({
+        processId: process.pid,
+        errorName: err?.name || "Error",
+        queueState: "STARTUP_FAILED",
+    }));
     process.exitCode = 1;
 })

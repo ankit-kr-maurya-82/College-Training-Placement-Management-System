@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getApplyUrl, isEligibleStudent, isValidEmail, createVacancyEmail, sendVacancyEmail, setTransportFactory } from "../src/services/vacancy-email.service.js";
+import { getApplyUrl, getEligibilityExclusionReason, isEligibleStudent, isValidEmail, createVacancyEmail, sendVacancyEmail, setTransportFactory } from "../src/services/vacancy-email.service.js";
 import { Drive } from "../src/models/drive.model.js";
 import { DriveNotification } from "../src/models/drive-notification.model.js";
 import { retryFailedNotifications } from "../src/controllers/drive-notification.controller.js";
@@ -11,6 +11,9 @@ test("eligibility filtering applies CGPA, branch, year, and backlog rules", () =
     assert.equal(isEligibleStudent({ cgpa: 8, department: "cse", graduationYear: 2027, activeBacklogs: 0 }, criteria), true);
     assert.equal(isEligibleStudent({ cgpa: 6, department: "CSE", graduationYear: 2027, activeBacklogs: 0 }, criteria), false);
     assert.equal(isEligibleStudent({}, {}), false);
+    assert.equal(getEligibilityExclusionReason({}, {}), "missingEducationData");
+    assert.equal(getEligibilityExclusionReason({ activeBacklogs: 2 }, { maxBacklogs: 0 }), "maxBacklogs");
+    assert.equal(getEligibilityExclusionReason({ activeBacklogs: 0 }, { maxBacklogs: 0 }), null);
 });
 
 test("recipient validation and application URL use configured frontend", () => {

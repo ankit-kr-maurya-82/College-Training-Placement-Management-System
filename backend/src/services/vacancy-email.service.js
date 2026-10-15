@@ -1,21 +1,22 @@
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function isValidEmail(email) { return typeof email === "string" && emailPattern.test(email.trim()); }
-export function isEligibleStudent(student, eligibility = {}) {
+export function getEligibilityExclusionReason(student, eligibility = {}) {
     const hasEducationData = [student.department, student.course].some((value) => typeof value === "string" && value.trim())
         || Number.isInteger(student.graduationYear) && student.graduationYear >= 1900
         || typeof student.cgpa === "number" && Number.isFinite(student.cgpa) && student.cgpa >= 0 && student.cgpa <= 10
         || Number.isInteger(student.activeBacklogs) && student.activeBacklogs >= 0;
-    if (!hasEducationData) return false;
-    if (eligibility.minCGPA !== undefined && (typeof student.cgpa !== "number" || student.cgpa < eligibility.minCGPA)) return false;
+    if (!hasEducationData) return "missingEducationData";
+    if (eligibility.minCGPA !== undefined && (typeof student.cgpa !== "number" || student.cgpa < eligibility.minCGPA)) return "minCGPA";
     if (eligibility.allowedBranches?.length) {
         const branches = [student.department, student.course].filter(Boolean).map((v) => v.trim().toLowerCase());
-        if (!eligibility.allowedBranches.some((v) => branches.includes(v.trim().toLowerCase()))) return false;
+        if (!eligibility.allowedBranches.some((v) => branches.includes(v.trim().toLowerCase()))) return "allowedBranches";
     }
-    if (eligibility.graduationYear !== undefined && student.graduationYear !== eligibility.graduationYear) return false;
-    if (eligibility.maxBacklogs !== undefined && (typeof student.activeBacklogs !== "number" || student.activeBacklogs > eligibility.maxBacklogs)) return false;
-    return true;
+    if (eligibility.graduationYear !== undefined && student.graduationYear !== eligibility.graduationYear) return "graduationYear";
+    if (eligibility.maxBacklogs !== undefined && (typeof student.activeBacklogs !== "number" || student.activeBacklogs > eligibility.maxBacklogs)) return "maxBacklogs";
+    return null;
 }
+export function isEligibleStudent(student, eligibility = {}) { return getEligibilityExclusionReason(student, eligibility) === null; }
 
 export function getApplyUrl(driveId) {
     const base = process.env.FRONTEND_URL || "http://localhost:5173";
