@@ -74,12 +74,12 @@ test("failed notifications can be safely retried by the owning company", async (
     const id = "507f1f77bcf86cd799439011";
     t.mock.method(Drive, "findOne", () => ({ select: () => ({ lean: async () => ({ _id: id, status: "Published", applicationDeadline: new Date("2099-01-01") }) }) }));
     const update = t.mock.method(DriveNotification, "updateMany", async () => ({ modifiedCount: 2 }));
-    t.mock.method(DriveNotificationJob, "findOne", () => ({ select: () => ({ lean: async () => ({ status: "DONE" }) }) }));
-    const enqueue = t.mock.method(DriveNotificationJob, "updateOne", async () => ({}));
+    let jobSaved = false;
+    t.mock.method(DriveNotificationJob, "findOneAndUpdate", async () => ({ status: "PROCESSING", save: async function () { jobSaved = true; } }));
     const res = { statusCode: 200, status(code) { this.statusCode = code; return this; }, json(body) { this.body = body; return this; } };
     await retryFailedNotifications({ params: { id }, user: { companyId: id } }, res);
     assert.equal(res.statusCode, 202);
     assert.equal(res.body.retryCount, 2);
     assert.equal(update.mock.calls[0].arguments[0].status, "FAILED");
-    assert.equal(enqueue.mock.callCount(), 1);
+    assert.equal(jobSaved, true);
 });

@@ -72,7 +72,7 @@ function mockWorkerDependencies(t, sendMail, eligibility = { minCGPA: 7, allowed
         assert.deepEqual(filter, { isActive: false });
         return 1;
     });
-    t.mock.method(DriveNotification, "bulkWrite", async (batch) => { operations.push(...batch); });
+    t.mock.method(DriveNotification, "bulkWrite", async (batch) => { operations.push(...batch); return { upsertedCount: batch.length }; });
     t.mock.method(DriveNotification, "find", () => ({
         select: () => ({
             limit: () => ({ lean: async () => {

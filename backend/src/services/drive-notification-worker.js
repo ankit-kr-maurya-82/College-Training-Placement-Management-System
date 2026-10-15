@@ -31,11 +31,27 @@ async function queueEligibleStudents(drive, job) {
     };
     let totalStudentsReturned = 0;
     let eligibleRecipientCount = 0;
+    let lastLeaseRefreshAt = 0;
+    let newlyQueuedCount = 0;
+    let alreadyExistingCount = 0;
+    const flushOperations = async () => {
+        if (!operations.length) return;
+        const batchSize = operations.length;
+        const result = await DriveNotification.bulkWrite(operations, { ordered: false });
+        newlyQueuedCount += result.upsertedCount ?? 0;
+        alreadyExistingCount += batchSize - (result.upsertedCount ?? 0);
+        operations.length = 0;
+    };
     const cursor = Student.find({ isActive: { $ne: false } })
         .select("email cgpa department course graduationYear activeBacklogs")
         .lean().cursor({ batchSize: 500 });
     for await (const student of cursor) {
         totalStudentsReturned += 1;
+        if (totalStudentsReturned - lastLeaseRefreshAt >= 500) {
+            job.leaseUntil = new Date(Date.now() + LEASE_MS);
+            await job.save();
+            lastLeaseRefreshAt = totalStudentsReturned;
+        }
         const email = typeof student.email === "string" ? student.email.trim().toLowerCase() : "";
         if (!isValidEmail(email)) { exclusions.invalidEmailCount += 1; continue; }
         if (seenEmails.has(email)) { exclusions.duplicateEmailCount += 1; continue; }
@@ -55,12 +71,11 @@ async function queueEligibleStudents(drive, job) {
         eligibleRecipientCount += 1;
         operations.push({ updateOne: { filter: { drive: drive._id, student: student._id }, update: { $setOnInsert: { drive: drive._id, student: student._id, email, status: "PENDING", attemptCount: 0 } }, upsert: true } });
         if (operations.length >= 200) {
-            await DriveNotification.bulkWrite(operations, { ordered: false });
-            operations.length = 0;
+            await flushOperations();
             job.leaseUntil = new Date(Date.now() + LEASE_MS); await job.save();
         }
     }
-    if (operations.length) await DriveNotification.bulkWrite(operations, { ordered: false });
+    await flushOperations();
     console.info("Vacancy notification recipients selected:", JSON.stringify({
         jobId: String(job._id),
         driveId: String(drive._id),
@@ -69,8 +84,28 @@ async function queueEligibleStudents(drive, job) {
         ...exclusions,
         eligibleRecipientCount,
     }));
-    return { company, eligibleRecipientCount };
+    const ineligible = {
+        inactive: exclusions.inactiveStudentCount,
+        invalidEmail: exclusions.invalidEmailCount,
+        duplicateEmail: exclusions.duplicateEmailCount,
+        missingEducationData: exclusions.missingEducationDataCount,
+        minCGPA: exclusions.minCGPAExcludedCount,
+        allowedBranches: exclusions.allowedBranchesExcludedCount,
+        graduationYear: exclusions.graduationYearExcludedCount,
+        maxBacklogs: exclusions.maxBacklogsExcludedCount,
+    };
+    return {
+        company,
+        eligibleRecipientCount,
+        newlyQueuedCount,
+        alreadyExistingCount,
+        ineligible,
+        totalStudentsReturned,
+        inactiveStudentCount: exclusions.inactiveStudentCount,
+    };
 }
+
+export { queueEligibleStudents };
 
 async function sendPendingDeliveries(drive, company, job) {
     const applyUrl = getApplyUrl(drive._id);
