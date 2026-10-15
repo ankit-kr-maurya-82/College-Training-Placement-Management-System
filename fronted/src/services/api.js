@@ -18,7 +18,9 @@ client.interceptors.response.use((response) => response, (error) => {
     window.dispatchEvent(new Event('placement:unauthorized'))
   }
   const message = error.response.data?.message || `Request failed (${error.response.status})`
-  return Promise.reject(new Error(message))
+  const requestError = new Error(message)
+  requestError.status = error.response.status
+  return Promise.reject(requestError)
 })
 
 export const api = {
