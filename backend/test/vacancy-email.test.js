@@ -21,9 +21,17 @@ test("recipient validation and application URL use configured frontend", () => {
 });
 
 test("vacancy email contains a safe working application link", () => {
-    const email = createVacancyEmail({ title: "Engineer", description: "Build products", location: "Pune", ctc: "8 LPA", applicationDeadline: "2027-01-01" }, { name: "Example" }, "https://placements.example/drives/123");
+    const email = createVacancyEmail({ title: "Engineer", description: "Build products", location: "Pune", ctc: "8 LPA", eligibility: { minCGPA: 7, allowedBranches: ["CSE"], graduationYear: 2027, maxBacklogs: 0 }, applicationDeadline: "2027-01-01" }, { name: "Example" }, "https://placements.example/drives/123");
     assert.match(email.html, /href="https:\/\/placements\.example\/drives\/123"/);
     assert.match(email.html, /Apply Now/);
+    assert.match(email.html, /Engineer/);
+    assert.match(email.html, /Example/);
+    assert.match(email.html, /Eligibility/);
+    assert.match(email.html, /7/);
+    assert.match(email.html, /2027/);
+    assert.match(email.html, /Apply by/);
+    assert.match(email.text, /Application deadline:/);
+    assert.match(email.text, /Apply Now: https:\/\/placements\.example\/drives\/123/);
 });
 
 test("SMTP failures are surfaced for delivery tracking without real email", async () => {

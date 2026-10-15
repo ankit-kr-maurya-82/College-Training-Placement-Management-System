@@ -95,7 +95,7 @@ describe("student profile routes", { concurrency: false }, () => {
         t.mock.method(Student, "findByIdAndUpdate", (id, changes, options) => {
             persistedId = id;
             update = changes.$set;
-            assert.equal(options.new, true);
+            assert.equal(options.returnDocument, "after");
             assert.equal(options.runValidators, true);
             const query = {
                 select: () => query,
