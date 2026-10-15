@@ -165,7 +165,7 @@ export async function publishDrive(req, res) {
         if (!company) return res.status(400).json({ message: "Company not found or inactive" });
         const transitionFilter = { _id: existing._id, status: "Draft" };
         if (isCompanyUser(req.user)) transitionFilter.company = req.user.companyId;
-        const drive = await Drive.findOneAndUpdate(transitionFilter, { $set: { status: "Published" } }, { new: true, runValidators: true });
+        const drive = await Drive.findOneAndUpdate(transitionFilter, { $set: { status: "Published" } }, { returnDocument: "after", runValidators: true });
         if (!drive) return res.status(409).json({ message: "Only draft drives can be published" });
         let notificationsQueued = true;
         try {

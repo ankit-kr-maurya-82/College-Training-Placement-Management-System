@@ -51,7 +51,7 @@ async function sendPendingDeliveries(drive, company, job) {
             const record = await DriveNotification.findOneAndUpdate(
                 { _id: item._id, status: "PENDING", $or: [{ leaseUntil: null }, { leaseUntil: { $lt: new Date() } }] },
                 { $set: { leaseUntil: new Date(Date.now() + 2 * 60 * 1000) }, $inc: { attemptCount: 1 } },
-                { new: true },
+                { returnDocument: "after" },
             );
             if (!record) continue;
             try {
@@ -98,7 +98,7 @@ export async function startDriveNotificationWorker() {
                 const job = await DriveNotificationJob.findOneAndUpdate(
                     { $or: [{ status: "PENDING" }, { status: "PROCESSING", leaseUntil: { $lt: new Date() } }] },
                     { $set: { status: "PROCESSING", leaseUntil: new Date(Date.now() + LEASE_MS) } },
-                    { new: true, sort: { createdAt: 1 } },
+                    { returnDocument: "after", sort: { createdAt: 1 } },
                 );
                 if (!job) break;
                 await processNotificationJob(job);

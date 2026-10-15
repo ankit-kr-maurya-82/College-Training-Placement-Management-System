@@ -103,7 +103,7 @@ export async function updateMyStudentProfile(req, res) {
         const student = await Student.findByIdAndUpdate(
             req.user.studentId,
             { $set: updates },
-            { new: true, runValidators: true },
+            { returnDocument: "after", runValidators: true },
         ).select("name email phone department course graduationYear cgpa skills resumeUrl").lean();
         if (!student) return res.status(404).json({ message: "Student profile not found" });
         return res.status(200).json({ message: "Student profile updated successfully", student: profileFrom(student) });
