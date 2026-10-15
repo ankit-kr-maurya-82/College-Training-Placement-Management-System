@@ -12,9 +12,9 @@ User :
 
 
 hi hello ankit bhoi
-akka - ankit 2
-main - ankit
-mad - bhrantik
+akka
+main
+mad
 
 backend 
 Student
