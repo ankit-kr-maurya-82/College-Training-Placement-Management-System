@@ -11,7 +11,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
+    "dev": "node --watch -r dotenv/config --experimental-json-modules src/index.js",
     "verify:smtp": "node scripts/verify-smtp.js",
     "email:test": "node scripts/send-test-email.js",
     "test": "node --test"
@@ -30,10 +30,9 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.3",
     "multer": "^2.4.0",
-    "nodemailer": "^7.0.13"
+    "nodemailer": "^10.1.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14",
     "prettier": "^3.9.6"
   }
 }
