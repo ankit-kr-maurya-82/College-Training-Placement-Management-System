@@ -1,0 +1,7 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { api } from '../../services/api.js'
+import { Busy, Empty, Notice } from '../../components/Feedback.jsx'
+import { companyName } from '../../utils/format.js'
+
+export default function Companies(){const [data,setData]=useState(null);const [search,setSearch]=useState('');const [error,setError]=useState('');useEffect(()=>{const t=setTimeout(()=>api.get('/companies',{params:{search,limit:24}}).then(setData).catch(e=>setError(e.message)),250);return()=>clearTimeout(t)},[search]);return <section className="section"><div className="section-heading"><div><p className="eyebrow">EMPLOYER DIRECTORY</p><h1>Companies</h1></div></div><input className="search-wide" placeholder="Search companies, industries, locations…" value={search} onChange={e=>setSearch(e.target.value)}/>{error&&<Notice error={error}/>}{!data?<Busy/>:data.companies?.length?<div className="company-grid">{data.companies.map(c=><article className="company-card" key={c._id}><span className="company-mark">{companyName(c).slice(0,1)}</span><h3><Link to={`/companies/${c._id}`}>{companyName(c)}</Link></h3><p className="muted">{c.industry||'Industry not listed'} · {c.location}</p><p>{c.description||'Explore current roles from this employer.'}</p><Link className="text-link" to={`/drives?company=${c._id}`}>View open drives →</Link></article>)}</div>:<Empty>No companies found.</Empty>}</section>}

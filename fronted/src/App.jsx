@@ -1,16 +1,12 @@
-import { useState } from 'react'
-import './index.css'
-import "tailwindcss"
+import { BrowserRouter } from 'react-router-dom'
+import { AuthProvider } from './context/auth.context.jsx'
+import AppRoutes from './routes/AppRoutes.jsx'
+import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-
-      <h1 className='p-2  bg-black text-5xl text-amber-300 h-200  '>chalo jawwano kro kuch</h1>
-    </>
-  )
+export default function App() {
+  return <BrowserRouter>
+            <AuthProvider>
+              <AppRoutes />
+            </AuthProvider>
+          </BrowserRouter>
 }
-
-export default App

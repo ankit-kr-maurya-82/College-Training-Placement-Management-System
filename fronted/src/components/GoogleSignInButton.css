@@ -1,0 +1,6 @@
+.google-sign-in{display:flex;justify-content:center;margin:14px 0 6px}
+.google-sign-in.is-disabled{pointer-events:none;opacity:.55}
+.google-sign-in-setup{margin:14px 0;padding:12px 14px;border:1px solid #e5d7a7;border-radius:7px;background:#fff9e8;color:#69571c;font-size:13px;line-height:1.6}
+.google-sign-in-setup code{font-size:12px;font-weight:700}
+.auth-divider{display:flex;align-items:center;gap:12px;color:#68766d;font-size:12px;margin:12px 0}
+.auth-divider::before,.auth-divider::after{content:'';height:1px;flex:1;background:#e8ebe4}
