@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import RecruiterNav from '../../components/RecruiterNav.jsx'
 import { api } from '../../services/api.js'
 
-const emptyForm = () => ({ title: '', description: '', jobType: 'Full-time', location: '', workMode: 'Hybrid', ctc: '', applicationDeadline: '', driveDate: '', openings: '1' })
+const emptyForm = () => ({ title: '', description: '', jobType: 'Full-time', location: '', workMode: 'Hybrid', ctc: '', applicationDeadline: '', driveDate: '', openings: '1', skills: '', minCGPA: '', allowedBranches: '', graduationYear: '', maxBacklogs: '' })
 
 export default function RecruiterDrives() {
   const [drives, setDrives] = useState([])
@@ -17,7 +17,9 @@ export default function RecruiterDrives() {
   async function create(event) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
     try {
-      const body = { ...form, applicationDeadline: new Date(form.applicationDeadline).toISOString(), ...(form.driveDate ? { driveDate: new Date(form.driveDate).toISOString() } : {}), openings: Number(form.openings), requiredSkills: [] }
+      const eligibility = { ...(form.minCGPA !== '' ? { minCGPA: Number(form.minCGPA) } : {}), ...(form.allowedBranches.trim() ? { allowedBranches: form.allowedBranches.split(',').map(v => v.trim()).filter(Boolean) } : {}), ...(form.graduationYear !== '' ? { graduationYear: Number(form.graduationYear) } : {}), ...(form.maxBacklogs !== '' ? { maxBacklogs: Number(form.maxBacklogs) } : {}) }
+      const body = { ...form, applicationDeadline: new Date(form.applicationDeadline).toISOString(), ...(form.driveDate ? { driveDate: new Date(form.driveDate).toISOString() } : {}), openings: Number(form.openings), requiredSkills: form.skills.split(',').map(v => v.trim()).filter(Boolean), eligibility }
+      for (const key of ['skills', 'minCGPA', 'allowedBranches', 'graduationYear', 'maxBacklogs']) delete body[key]
       if (editingId) { await api.put(`/companies/me/drives/${editingId}`, body); setNotice('Drive updated successfully.') }
       else { await api.post('/companies/me/drives', body); setNotice('Drive created as a draft. Publish it when the details are ready.') }
       setEditingId(''); setForm(emptyForm()); await load()
@@ -31,14 +33,19 @@ export default function RecruiterDrives() {
       setNotice(actionName === 'delete' ? 'Drive deleted.' : `Drive ${actionName === 'publish' ? 'published' : 'closed'}.`); await load()
     } catch (err) { setError(err.message) }
   }
+  async function notify(drive) {
+    setError(''); setNotice(''); setBusy(true)
+    try { const result = await api.post(`/companies/me/drives/${drive._id}/notify`, {}); setNotice(`Notifications complete for ${drive.title}: ${result.sent} sent, ${result.failed} failed, ${result.skipped} already notified, ${result.invalidRecipients} invalid recipient(s), ${result.duplicateRecipients} duplicate email(s).`) }
+    catch (err) { setError(err.message) } finally { setBusy(false) }
+  }
   function edit(drive) {
     setEditingId(drive._id)
-    setForm({ title: drive.title || '', description: drive.description || '', jobType: drive.jobType || 'Full-time', location: drive.location || '', workMode: drive.workMode || 'Hybrid', ctc: drive.ctc || '', applicationDeadline: drive.applicationDeadline?.slice(0, 10) || '', driveDate: drive.driveDate?.slice(0, 10) || '', openings: String(drive.openings || 1) })
+    setForm({ title: drive.title || '', description: drive.description || '', jobType: drive.jobType || 'Full-time', location: drive.location || '', workMode: drive.workMode || 'Hybrid', ctc: drive.ctc || '', applicationDeadline: drive.applicationDeadline?.slice(0, 10) || '', driveDate: drive.driveDate?.slice(0, 10) || '', openings: String(drive.openings || 1), skills: drive.requiredSkills?.join(', ') || '', minCGPA: drive.eligibility?.minCGPA ?? '', allowedBranches: drive.eligibility?.allowedBranches?.join(', ') || '', graduationYear: drive.eligibility?.graduationYear ?? '', maxBacklogs: drive.eligibility?.maxBacklogs ?? '' })
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
   return <section className="admin"><div className="dashboard-heading"><div><p className="eyebrow">COMPANY PORTAL</p><h1>Placement drives</h1><p className="muted">Create and manage opportunities belonging to your company.</p></div></div><RecruiterNav />
     {error && <div className="notice error">{error}</div>}{notice && <div className="notice">{notice}</div>}
-      <div className="admin-columns"><div><h2>Your drives</h2>{drives.length ? <div className="table-wrap"><table><thead><tr><th>Role</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{drives.map((drive) => <tr key={drive._id}><td>{drive.title}<div className="muted">{drive.jobType} · {drive.location}</div></td><td>{drive.status}</td><td>{new Date(drive.applicationDeadline).toLocaleDateString()}</td><td><div className="drive-manage-actions">{['Draft', 'Published'].includes(drive.status) && <button type="button" onClick={() => edit(drive)}>Edit</button>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'publish')}>Publish</button>}{drive.status === 'Published' && <button type="button" onClick={() => action(drive._id, 'close')}>Close</button>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'delete')}>Delete</button>}</div></td></tr>)}</tbody></table></div> : <div className="state">No drives yet. Create one using the form.</div>}</div>
+      <div className="admin-columns"><div><h2>Your drives</h2>{drives.length ? <div className="table-wrap"><table><thead><tr><th>Role</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{drives.map((drive) => <tr key={drive._id}><td>{drive.title}<div className="muted">{drive.jobType} · {drive.location}</div></td><td>{drive.status}</td><td>{new Date(drive.applicationDeadline).toLocaleDateString()}</td><td><div className="drive-manage-actions">{['Draft', 'Published'].includes(drive.status) && <button type="button" onClick={() => edit(drive)}>Edit</button>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'publish')}>Publish</button>}{drive.status === 'Published' && <><button type="button" onClick={() => action(drive._id, 'close')}>Close</button><button type="button" disabled={busy} onClick={() => notify(drive)}>Notify Eligible Students</button></>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'delete')}>Delete</button>}</div></td></tr>)}</tbody></table></div> : <div className="state">No drives yet. Create one using the form.</div>}</div>
       <form className="panel form-stack" onSubmit={create}><h3>{editingId ? 'Edit drive' : 'Create a drive'}</h3><div className="inline-form">
         <label className="span-two">Job title<input required name="title" value={form.title} onChange={change} maxLength="120" /></label>
         <label>Job type<select name="jobType" value={form.jobType} onChange={change}><option>Full-time</option><option>Internship</option><option>Part-time</option></select></label>
@@ -48,6 +55,11 @@ export default function RecruiterDrives() {
         <label>Application deadline<input type="date" required name="applicationDeadline" value={form.applicationDeadline} onChange={change} /></label>
         <label>Drive date<input type="date" name="driveDate" value={form.driveDate} onChange={change} /></label>
         <label>Openings<input type="number" required min="1" step="1" name="openings" value={form.openings} onChange={change} /></label>
+        <label>Required skills<input name="skills" value={form.skills} onChange={change} placeholder="React, SQL, Python" /></label>
+        <label>Minimum CGPA<input type="number" min="0" max="10" step="0.01" name="minCGPA" value={form.minCGPA} onChange={change} /></label>
+        <label>Eligible branches<input name="allowedBranches" value={form.allowedBranches} onChange={change} placeholder="CSE, IT" /></label>
+        <label>Graduation year<input type="number" min="1900" step="1" name="graduationYear" value={form.graduationYear} onChange={change} /></label>
+        <label>Maximum active backlogs<input type="number" min="0" step="1" name="maxBacklogs" value={form.maxBacklogs} onChange={change} /></label>
         <label>Description<textarea required rows="4" name="description" value={form.description} onChange={change} /></label>
       </div><div className="form-actions"><button className="button" disabled={busy}>{busy ? 'Saving…' : editingId ? 'Save changes' : 'Save draft'}</button>{editingId && <button className="button ghost" type="button" onClick={() => { setEditingId(''); setForm(emptyForm()) }}>Cancel</button>}</div></form>
     </div>

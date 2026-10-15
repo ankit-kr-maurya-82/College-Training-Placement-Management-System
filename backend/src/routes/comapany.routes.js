@@ -14,6 +14,7 @@ import {
 import { authenticateToken, requireActiveCompany } from "../middlewares/auth.middleware.js";
 import { authorizeRoles } from "../middlewares/role.middleware.js";
 import { closeDrive, createDrive, deleteDrive, getManageDrives, publishDrive, updateDrive } from "../controllers/drive.controller.js";
+import { notifyEligibleStudents } from "../controllers/drive-notification.controller.js";
 
 const router = express.Router();
 const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
@@ -32,6 +33,7 @@ router.put("/me/drives/:id", ...companyAccount, updateDrive);
 router.delete("/me/drives/:id", ...companyAccount, deleteDrive);
 router.patch("/me/drives/:id/publish", ...companyAccount, publishDrive);
 router.patch("/me/drives/:id/close", ...companyAccount, closeDrive);
+router.post("/me/drives/:id/notify", ...companyAccount, notifyEligibleStudents);
 
 router.post("/", ...companyManagers, createCompany);
 router.get("/", getCompanies);
