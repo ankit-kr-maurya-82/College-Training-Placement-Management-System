@@ -6,13 +6,19 @@ const emptyForm = () => ({ title: '', description: '', jobType: 'Full-time', loc
 
 export default function RecruiterDrives() {
   const [drives, setDrives] = useState([])
+  const [notifications, setNotifications] = useState({})
   const [form, setForm] = useState(emptyForm)
   const [editingId, setEditingId] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
-  const load = useCallback(() => api.get('/companies/me/drives?limit=100').then((data) => setDrives(data.drives || [])).catch((err) => setError(err.message)), [])
-  useEffect(() => { load() }, [load])
+  const load = useCallback(async () => {
+    try {
+      const [data, summary] = await Promise.all([api.get('/companies/me/drives?limit=100'), api.get('/companies/me/notifications')])
+      setDrives(data.drives || []); setNotifications(summary.notifications || {})
+    } catch (err) { setError(err.message) }
+  }, [])
+  useEffect(() => { load(); const timer = setInterval(load, 8000); return () => clearInterval(timer) }, [load])
   const change = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }))
   async function create(event) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
@@ -28,14 +34,15 @@ export default function RecruiterDrives() {
   async function action(id, actionName) {
     setError(''); setNotice('')
     try {
-      if (actionName === 'delete') await api.delete(`/companies/me/drives/${id}`)
-      else await api.patch(`/companies/me/drives/${id}/${actionName}`, {})
-      setNotice(actionName === 'delete' ? 'Drive deleted.' : `Drive ${actionName === 'publish' ? 'published' : 'closed'}.`); await load()
+      let result
+      if (actionName === 'delete') result = await api.delete(`/companies/me/drives/${id}`)
+      else result = await api.patch(`/companies/me/drives/${id}/${actionName}`, {})
+      setNotice(actionName === 'delete' ? 'Drive deleted.' : actionName === 'publish' ? (result.notificationsQueued ? 'Drive published. Student notifications are queued.' : 'Drive published, but notifications could not be queued. Contact the placement administrator.') : 'Drive closed.'); await load()
     } catch (err) { setError(err.message) }
   }
   async function notify(drive) {
     setError(''); setNotice(''); setBusy(true)
-    try { const result = await api.post(`/companies/me/drives/${drive._id}/notify`, {}); setNotice(`Notifications complete for ${drive.title}: ${result.sent} sent, ${result.failed} failed, ${result.skipped} already notified, ${result.invalidRecipients} invalid recipient(s), ${result.duplicateRecipients} duplicate email(s).`) }
+    try { const result = await api.post(`/companies/me/drives/${drive._id}/notify`, {}); setNotice(`${result.message} for ${drive.title}${result.retryCount ? ` (${result.retryCount} deliveries)` : ''}.`) }
     catch (err) { setError(err.message) } finally { setBusy(false) }
   }
   function edit(drive) {
@@ -45,7 +52,7 @@ export default function RecruiterDrives() {
   }
   return <section className="admin"><div className="dashboard-heading"><div><p className="eyebrow">COMPANY PORTAL</p><h1>Placement drives</h1><p className="muted">Create and manage opportunities belonging to your company.</p></div></div><RecruiterNav />
     {error && <div className="notice error">{error}</div>}{notice && <div className="notice">{notice}</div>}
-      <div className="admin-columns"><div><h2>Your drives</h2>{drives.length ? <div className="table-wrap"><table><thead><tr><th>Role</th><th>Status</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{drives.map((drive) => <tr key={drive._id}><td>{drive.title}<div className="muted">{drive.jobType} · {drive.location}</div></td><td>{drive.status}</td><td>{new Date(drive.applicationDeadline).toLocaleDateString()}</td><td><div className="drive-manage-actions">{['Draft', 'Published'].includes(drive.status) && <button type="button" onClick={() => edit(drive)}>Edit</button>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'publish')}>Publish</button>}{drive.status === 'Published' && <><button type="button" onClick={() => action(drive._id, 'close')}>Close</button><button type="button" disabled={busy} onClick={() => notify(drive)}>Notify Eligible Students</button></>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'delete')}>Delete</button>}</div></td></tr>)}</tbody></table></div> : <div className="state">No drives yet. Create one using the form.</div>}</div>
+      <div className="admin-columns"><div><h2>Your drives</h2>{drives.length ? <div className="table-wrap"><table><thead><tr><th>Role</th><th>Status</th><th>Notifications</th><th>Deadline</th><th>Actions</th></tr></thead><tbody>{drives.map((drive) => { const summary = notifications[drive._id]; const hasNoNotifications = summary && !summary.sent && !summary.pending && !summary.failed && !summary.jobStatus; return <tr key={drive._id}><td>{drive.title}<div className="muted">{drive.jobType} · {drive.location}</div></td><td>{drive.status}</td><td>{summary ? `${summary.sent} sent · ${summary.pending} pending · ${summary.failed} failed` : '—'}<div className="muted">{summary?.jobStatus === 'PROCESSING' || summary?.jobStatus === 'PENDING' ? 'Processing notification batch' : ''}</div></td><td>{new Date(drive.applicationDeadline).toLocaleDateString()}</td><td><div className="drive-manage-actions">{['Draft', 'Published'].includes(drive.status) && <button type="button" onClick={() => edit(drive)}>Edit</button>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'publish')}>Publish</button>}{drive.status === 'Published' && <><button type="button" onClick={() => action(drive._id, 'close')}>Close</button>{(summary?.failed > 0 || summary?.jobStatus === 'FAILED' || hasNoNotifications) && <button type="button" disabled={busy} onClick={() => notify(drive)}>{hasNoNotifications ? 'Queue notifications' : 'Retry failed notifications'}</button>}</>}{drive.status === 'Draft' && <button type="button" onClick={() => action(drive._id, 'delete')}>Delete</button>}</div></td></tr> })}</tbody></table></div> : <div className="state">No drives yet. Create one using the form.</div>}</div>
       <form className="panel form-stack" onSubmit={create}><h3>{editingId ? 'Edit drive' : 'Create a drive'}</h3><div className="inline-form">
         <label className="span-two">Job title<input required name="title" value={form.title} onChange={change} maxLength="120" /></label>
         <label>Job type<select name="jobType" value={form.jobType} onChange={change}><option>Full-time</option><option>Internship</option><option>Part-time</option></select></label>

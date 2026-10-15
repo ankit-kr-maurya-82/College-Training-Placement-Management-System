@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { Company } from "../models/company.model.js";
 import { Drive } from "../models/drive.model.js";
+import { DriveNotificationJob } from "../models/drive-notification-job.model.js";
 
 const driveFields = ["title", "company", "description", "jobType", "location", "workMode", "ctc", "eligibility", "requiredSkills", "applicationDeadline", "driveDate", "openings"];
 const jobTypes = new Set(["Full-time", "Internship", "Part-time"]);
@@ -155,16 +156,27 @@ export async function updateDrive(req, res) {
 export async function publishDrive(req, res) {
     if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid drive ID" });
     try {
-        const drive = await Drive.findById(req.params.id);
-        if (!drive) return res.status(404).json({ message: "Drive not found" });
-        if (!ownsDrive(drive, req.user)) return res.status(403).json({ message: "You cannot manage this drive" });
-        if (drive.status !== "Draft") return res.status(409).json({ message: "Only draft drives can be published" });
-        if (drive.applicationDeadline <= new Date()) return res.status(400).json({ message: "Application deadline must be in the future" });
-        const company = await Company.findOne({ _id: drive.company, isActive: true });
+        const existing = await Drive.findById(req.params.id);
+        if (!existing) return res.status(404).json({ message: "Drive not found" });
+        if (!ownsDrive(existing, req.user)) return res.status(403).json({ message: "You cannot manage this drive" });
+        if (existing.status !== "Draft") return res.status(409).json({ message: "Only draft drives can be published" });
+        if (existing.applicationDeadline <= new Date()) return res.status(400).json({ message: "Application deadline must be in the future" });
+        const company = await Company.findOne({ _id: existing.company, isActive: true });
         if (!company) return res.status(400).json({ message: "Company not found or inactive" });
-        drive.status = "Published";
-        await drive.save();
-        return res.status(200).json({ message: "Drive published successfully", drive });
+        const transitionFilter = { _id: existing._id, status: "Draft" };
+        if (isCompanyUser(req.user)) transitionFilter.company = req.user.companyId;
+        const drive = await Drive.findOneAndUpdate(transitionFilter, { $set: { status: "Published" } }, { new: true, runValidators: true });
+        if (!drive) return res.status(409).json({ message: "Only draft drives can be published" });
+        let notificationsQueued = true;
+        try {
+            await DriveNotificationJob.updateOne({ drive: drive._id }, { $setOnInsert: { drive: drive._id, status: "PENDING" } }, { upsert: true });
+        } catch (queueError) {
+            if (queueError?.code !== 11000) {
+                notificationsQueued = false;
+                console.error("Could not enqueue vacancy notifications: Queue storage unavailable");
+            }
+        }
+        return res.status(200).json({ message: "Drive published successfully", drive, notificationsQueued });
     } catch (err) { return handleError(res, err, "publishing"); }
 }
 
