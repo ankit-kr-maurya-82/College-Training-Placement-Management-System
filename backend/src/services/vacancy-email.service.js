@@ -84,6 +84,38 @@ export async function sendVacancyEmail({ to, drive, company, applyUrl }) {
     return transport.sendMail({ from, to, ...createVacancyEmail(drive, company, applyUrl) });
 }
 
+function formatInterviewTime(value, timeZone) {
+    return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone }).format(new Date(value));
+}
+
+function escapeInterviewHtml(value = "") {
+    return String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+}
+
+export async function sendInterviewEmail({ to, studentName, companyName, driveTitle, action, interview }) {
+    const { from } = getSmtpOptions();
+    const transport = await getTransport();
+    const actionText = action === "SCHEDULED" ? "scheduled" : action === "RESCHEDULED" ? "rescheduled" : "cancelled";
+    const start = formatInterviewTime(interview.startAt, interview.timeZone);
+    const end = formatInterviewTime(interview.endAt, interview.timeZone);
+    const mode = interview.mode === "ONLINE" ? "Online" : interview.mode === "OFFLINE" ? "In person" : "Phone";
+    const accessDetails = interview.mode === "ONLINE"
+        ? `Meeting link: ${interview.meetingLink || "See your placement portal"}`
+        : interview.mode === "OFFLINE" ? `Venue: ${interview.venue || "See your placement portal"}` : "The company will contact you by phone.";
+    const instructions = interview.instructions?.trim() ? `Instructions: ${interview.instructions.trim()}` : "";
+    const title = `${driveTitle} interview ${actionText}`;
+    const text = [
+        `Hello ${studentName || "student"},`,
+        `${companyName} has ${actionText} your interview for ${driveTitle}.`,
+        `Date and time: ${start} to ${end} (${interview.timeZone})`,
+        `Mode: ${mode}`,
+        accessDetails,
+        instructions,
+    ].filter(Boolean).join("\n\n");
+    const html = `<p>Hello ${escapeInterviewHtml(studentName || "student")},</p><p>${escapeInterviewHtml(companyName)} has ${actionText} your interview for <b>${escapeInterviewHtml(driveTitle)}</b>.</p><p><b>Date and time:</b> ${escapeInterviewHtml(start)} to ${escapeInterviewHtml(end)} (${escapeInterviewHtml(interview.timeZone)})<br><b>Mode:</b> ${mode}</p><p>${escapeInterviewHtml(accessDetails)}</p>${instructions ? `<p>${escapeInterviewHtml(instructions)}</p>` : ""}`;
+    return transport.sendMail({ from, to, subject: title, text, html });
+}
+
 export async function sendPasswordResetEmail({ to, url }) {
     const { from } = getSmtpOptions();
     const transport = await getTransport();

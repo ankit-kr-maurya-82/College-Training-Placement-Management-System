@@ -21,6 +21,7 @@ import { resendVerificationEmail, verifyEmail } from "../controllers/email-verif
 import { verificationResendRateLimit } from "../middlewares/email-verification-rate-limit.middleware.js";
 import { receiveProfilePicture } from "../middlewares/profile-picture-upload.middleware.js";
 import { uploadCompanyProfilePicture } from "../controllers/profile-picture.controller.js";
+import { cancelInterview, completeInterview, createInterview, listCompanyInterviews, rescheduleInterview } from "../controllers/interview.controller.js";
 
 const router = express.Router();
 const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
@@ -40,6 +41,11 @@ router.put("/me/profile", ...companyAccount, updateCompanyProfile);
 router.post("/me/profile-picture", ...companyAccount, receiveProfilePicture, uploadCompanyProfilePicture);
 router.get("/me/drives", ...companyAccount, getManageDrives);
 router.get("/me/notifications", ...companyAccount, getCompanyNotificationSummary);
+router.get("/me/interviews", ...companyAccount, listCompanyInterviews);
+router.post("/me/interviews", ...companyAccount, createInterview);
+router.patch("/me/interviews/:id/reschedule", ...companyAccount, rescheduleInterview);
+router.patch("/me/interviews/:id/cancel", ...companyAccount, cancelInterview);
+router.patch("/me/interviews/:id/complete", ...companyAccount, completeInterview);
 router.post("/me/drives", ...companyAccount, createDrive);
 router.put("/me/drives/:id", ...companyAccount, updateDrive);
 router.delete("/me/drives/:id", ...companyAccount, deleteDrive);
