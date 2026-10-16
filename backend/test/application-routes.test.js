@@ -4,6 +4,8 @@ import { after, before, describe, it } from "node:test";
 import jwt from "jsonwebtoken";
 import { app } from "../src/app.js";
 import { Application } from "../src/models/application.model.js";
+import { Company } from "../src/models/company.model.js";
+import { Drive } from "../src/models/drive.model.js";
 import { Student } from "../src/models/student.model.js";
 
 const secret = "application-route-test-secret";
@@ -91,5 +93,52 @@ describe("application route authentication", { concurrency: false }, () => {
         const response = await get(`${baseUrl}/my`, studentToken);
         assert.equal(response.status, 403);
         assert.deepEqual(response.body, { message: "Student account is disabled" });
+    });
+
+    it("authenticates recommendations, uses the token student, and applies through the existing endpoint", async (t) => {
+        const driveId = "507f1f77bcf86cd799439016";
+        t.mock.method(Student, "findById", () => {
+            const profile = { _id: studentId, isActive: true, cgpa: 8, department: "CSE", graduationYear: 2027, activeBacklogs: 0, skills: ["Node.js"], resumeUrl: "https://resume.example/student.pdf" };
+            const query = { select: () => query, lean: async () => profile };
+            return query;
+        });
+        t.mock.method(Company, "find", () => {
+            const query = { select: () => query, lean: async () => [{ _id: "507f1f77bcf86cd799439017" }] };
+            return query;
+        });
+        const role = { _id: driveId, title: "Backend Engineer", description: "Build services", location: "Pune", jobType: "Full-time", workMode: "Hybrid", status: "Published", applicationDeadline: new Date(Date.now() + 86_400_000), requiredSkills: ["Node.js"], eligibility: { minCGPA: 7 }, company: { _id: "507f1f77bcf86cd799439017", name: "Example" } };
+        t.mock.method(Drive, "find", () => {
+            const query = { populate: () => query, lean: async () => [role] };
+            return query;
+        });
+        t.mock.method(Drive, "findById", (id) => {
+            assert.equal(id, driveId);
+            return Promise.resolve({ ...role });
+        });
+        t.mock.method(Company, "findById", async () => ({ isActive: true }));
+        t.mock.method(Application, "find", (filter) => {
+            assert.deepEqual(filter, { student: studentId });
+            const query = { select: () => query, lean: async () => [] };
+            return query;
+        });
+        t.mock.method(Application, "create", async (document) => ({ _id: "507f1f77bcf86cd799439018", ...document }));
+        t.mock.method(Application, "countDocuments", async () => 0);
+
+        const anonymous = await fetch(`${baseUrl.replace("/applications", "/drives")}/recommendations`);
+        assert.equal(anonymous.status, 401);
+        const token = jwt.sign({ studentId }, secret);
+        const recommended = await fetch(`${baseUrl.replace("/applications", "/drives")}/recommendations?studentId=507f1f77bcf86cd799439099`, { headers: { Authorization: `Bearer ${token}` } });
+        assert.equal(recommended.status, 200);
+        const recommendationBody = await recommended.json();
+        assert.equal(recommendationBody.recommendations[0].drive._id, driveId);
+        assert.equal(recommendationBody.recommendations[0].eligibilityStatus, "ELIGIBLE");
+
+        const application = await fetch(baseUrl, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ driveId: recommendationBody.recommendations[0].drive._id }),
+        });
+        assert.equal(application.status, 201);
+        assert.equal((await application.json()).application.student, studentId);
     });
 });

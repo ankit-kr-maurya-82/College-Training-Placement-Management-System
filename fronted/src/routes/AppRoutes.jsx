@@ -11,6 +11,7 @@ import CompanyDetails from '../pages/student/CompanyDetails.jsx'
 import Applications from '../pages/student/Applications.jsx'
 import StudentProfile from '../pages/student/Profile.jsx'
 import StudentInterviews from '../pages/student/Interviews.jsx'
+import Recommendations from '../pages/student/Recommendations.jsx'
 import AdminDashboard from '../pages/admin/Dashboard.jsx'
 import AdminCompanies from '../pages/admin/Companies.jsx'
 import AdminDrives from '../pages/admin/Drives.jsx'
@@ -45,6 +46,7 @@ export default function AppRoutes() {
                     <Route path="/companies/:id" element={<CompanyDetails />} />
                     <Route path="/applications" element={<Protected role="STUDENT"><Applications /></Protected>} />
                     <Route path="/interviews" element={<Protected role="STUDENT"><StudentInterviews /></Protected>} />
+                    <Route path="/recommendations" element={<Protected role="STUDENT"><Recommendations /></Protected>} />
                     <Route path="/profile" element={<Protected role="STUDENT"><StudentProfile /></Protected>} />
                     <Route path="/admin" element={<Protected manager><AdminDashboard /></Protected>} />
                     <Route path="/admin/companies" element={<Protected manager><AdminCompanies /></Protected>} />

@@ -3,6 +3,7 @@ import { Company } from "../models/company.model.js";
 import { Drive } from "../models/drive.model.js";
 import { Student } from "../models/student.model.js";
 import mongoose from "mongoose";
+import { checkApplicationEligibility } from "../services/application-eligibility.service.js";
 
 const statuses = ["Applied", "Under Review", "Shortlisted", "Interview Scheduled", "Selected", "Rejected", "Withdrawn"];
 const managerStatuses = new Set(["Under Review", "Shortlisted", "Interview Scheduled", "Selected", "Rejected"]);
@@ -53,17 +54,6 @@ function validResumeUrl(value) {
     } catch { return false; }
 }
 
-function checkEligibility(student, eligibility = {}) {
-    if (eligibility.minCGPA !== undefined && (typeof student.cgpa !== "number" || student.cgpa < eligibility.minCGPA)) return "You do not meet the minimum CGPA requirement";
-    if (eligibility.allowedBranches?.length) {
-        const studentBranches = [student.department, student.course].filter(Boolean).map((value) => value.trim().toLowerCase());
-        if (!studentBranches.length || !eligibility.allowedBranches.some((branch) => studentBranches.includes(branch.trim().toLowerCase()))) return "Your branch is not eligible for this drive";
-    }
-    if (eligibility.graduationYear !== undefined && student.graduationYear !== eligibility.graduationYear) return "Your graduation year is not eligible for this drive";
-    if (eligibility.maxBacklogs !== undefined && (typeof student.activeBacklogs !== "number" || student.activeBacklogs > eligibility.maxBacklogs)) return "You do not meet the backlog requirement";
-    return null;
-}
-
 export async function applyForDrive(req, res) {
     const studentId = studentIdFrom(req.user);
     if (!studentId) return res.status(403).json({ message: "A student account is required" });
@@ -79,7 +69,7 @@ export async function applyForDrive(req, res) {
         if (!(drive.applicationDeadline > new Date())) return res.status(409).json({ message: "The application deadline has passed" });
         const company = await Company.findById(drive.company);
         if (!company || company.isActive !== true) return res.status(409).json({ message: "This drive is not accepting applications" });
-        const eligibilityError = checkEligibility(student, drive.eligibility);
+        const eligibilityError = checkApplicationEligibility(student, drive.eligibility);
         if (eligibilityError) return res.status(403).json({ message: eligibilityError });
         const selectedResume = resumeUrl === undefined ? student.resumeUrl : resumeUrl.trim();
         if (!validResumeUrl(selectedResume)) return res.status(400).json({ message: "A valid resumeUrl is required" });
