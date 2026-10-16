@@ -20,6 +20,8 @@ const companySchema = new mongoose.Schema({
     hrPhoneNumber: { type: String, trim: true },
     hrContact: { type: String, trim: true },
     logo: { type: String, trim: true },
+    profilePictureUrl: { type: String, trim: true },
+    profilePicturePublicId: { type: String, trim: true, select: false },
     isActive: { type: Boolean, default: true },
     // Missing values on legacy documents are treated as verified by login handlers.
     isEmailVerified: { type: Boolean, default: false, index: true },

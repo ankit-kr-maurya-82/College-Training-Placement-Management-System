@@ -70,6 +70,7 @@ describe("student profile routes", { concurrency: false }, () => {
                     twelfthPercentage: null,
                     skills: [],
                     resumeUrl: "",
+                    profilePictureUrl: "",
                 }),
             };
             return query;

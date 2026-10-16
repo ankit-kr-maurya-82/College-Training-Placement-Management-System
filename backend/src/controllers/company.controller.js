@@ -347,7 +347,7 @@ export async function getCompanyDashboard(req, res) {
 
 export async function getCompanyProfile(req, res) {
     try {
-        const company = await Company.findById(req.user.companyId).select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo isActive createdAt").lean();
+        const company = await Company.findById(req.user.companyId).select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo profilePictureUrl isActive createdAt").lean();
         if (!company) return res.status(404).json({ message: "Company not found" });
         return res.status(200).json({ company });
     } catch (error) {
@@ -368,7 +368,7 @@ export async function updateCompanyProfile(req, res) {
     if (input.website && !validUrl.test(input.website)) return res.status(400).json({ message: "Website must be a valid URL" });
     try {
         const company = await Company.findByIdAndUpdate(req.user.companyId, { $set: input }, { returnDocument: "after", runValidators: true })
-            .select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo isActive").lean();
+            .select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo profilePictureUrl isActive").lean();
         if (!company) return res.status(404).json({ message: "Company not found" });
         return res.status(200).json({ message: "Profile updated successfully", company });
     } catch (error) {

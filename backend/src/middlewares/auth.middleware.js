@@ -28,7 +28,7 @@ export async function requireActiveStudent(req, res, next) {
     }
     try {
         const student = await Student.findById(studentId)
-            .select("isActive name email phone cgpa department course graduationYear skills resumeUrl activeBacklogs tenthPercentage twelfthPercentage")
+            .select("isActive name email phone cgpa department course graduationYear skills resumeUrl activeBacklogs tenthPercentage twelfthPercentage profilePictureUrl +profilePicturePublicId")
             .lean();
         if (!student) return res.status(401).json({ message: "Student account not found" });
         if (student.isActive === false) return res.status(403).json({ message: "Student account is disabled" });
@@ -51,7 +51,7 @@ export async function requireActiveCompany(req, res, next) {
         return res.status(403).json({ message: "A company account is required" });
     }
     try {
-        const company = await Company.findById(companyId).select("isActive name companyName").lean();
+        const company = await Company.findById(companyId).select("isActive name companyName profilePictureUrl +profilePicturePublicId").lean();
         if (!company) return res.status(401).json({ message: "Company account not found" });
         if (company.isActive === false) return res.status(403).json({ message: "Company account is disabled" });
         req.company = company;

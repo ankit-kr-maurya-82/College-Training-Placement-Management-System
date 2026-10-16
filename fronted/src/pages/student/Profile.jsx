@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../services/api.js'
+import ProfilePictureUpload from '../../components/ProfilePictureUpload.jsx'
 
 export default function StudentProfile() {
   const [profile, setProfile] = useState(null)
@@ -61,6 +62,7 @@ export default function StudentProfile() {
     {notice && <div className="notice" role="status">{notice}</div>}
     {loading ? <div className="state" role="status">Loading your profile…</div> : profile ? <div className="panel profile-card">
       <p className="muted">Account email: <b>{profile.email}</b></p>
+      <ProfilePictureUpload endpoint="/students/me/profile-picture" imageUrl={profile.profilePictureUrl} onUploaded={(profilePictureUrl) => setProfile((current) => ({ ...current, profilePictureUrl }))}/>
       <form className="form-stack" onSubmit={save}>
         <label>Full name<input name="name" autoComplete="name" maxLength="120" required value={form.name} onChange={updateField} /></label>
         <div className="form-pair">

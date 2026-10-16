@@ -1,0 +1,14 @@
+.profile-picture-upload { display: flex; align-items: center; gap: 22px; padding: 18px; margin: 16px 0 22px; border: 1px solid #e7ebe5; border-radius: 8px; background: #fbfcfa; }
+.profile-picture-preview { display: grid; flex: none; width: 92px; height: 92px; place-items: center; overflow: hidden; border: 1px solid #e1e8df; border-radius: 50%; background: #edf4ec; color: #588064; }
+.profile-picture-preview img { width: 100%; height: 100%; object-fit: cover; }
+.profile-picture-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 9px 12px; }
+.profile-picture-controls .eyebrow,.profile-picture-controls .muted { flex-basis: 100%; margin: 0; }
+.profile-picture-controls .muted { font-size: 11px; }
+.profile-picture-picker { cursor: pointer; }
+.profile-picture-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+.profile-picture-controls:has(.profile-picture-input:focus-visible) .profile-picture-picker { outline: 3px solid #9fc7a2; outline-offset: 2px; }
+.profile-picture-controls .button { font-size: 11px; padding: 9px 12px; }
+.profile-picture-progress { display: flex; flex-basis: 100%; align-items: center; gap: 8px; color: #65736a; font-size: 10px; }
+.profile-picture-progress progress { width: min(260px, 75%); height: 7px; accent-color: #477954; }
+.profile-picture-controls .notice { flex-basis: 100%; margin: 0; }
+@media (max-width: 600px) { .profile-picture-upload { align-items: flex-start; gap: 14px; padding: 14px; } .profile-picture-preview { width: 70px; height: 70px; } .profile-picture-controls { gap: 8px; } }

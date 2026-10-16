@@ -19,6 +19,8 @@ import { requestPasswordReset, resetPassword } from "../controllers/password-res
 import { passwordResetRateLimit } from "../middlewares/password-reset-rate-limit.middleware.js";
 import { resendVerificationEmail, verifyEmail } from "../controllers/email-verification.controller.js";
 import { verificationResendRateLimit } from "../middlewares/email-verification-rate-limit.middleware.js";
+import { receiveProfilePicture } from "../middlewares/profile-picture-upload.middleware.js";
+import { uploadCompanyProfilePicture } from "../controllers/profile-picture.controller.js";
 
 const router = express.Router();
 const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
@@ -35,6 +37,7 @@ const companyAccount = [authenticateToken, authorizeRoles("COMPANY"), requireAct
 router.get("/me/dashboard", ...companyAccount, getCompanyDashboard);
 router.get("/me/profile", ...companyAccount, getCompanyProfile);
 router.put("/me/profile", ...companyAccount, updateCompanyProfile);
+router.post("/me/profile-picture", ...companyAccount, receiveProfilePicture, uploadCompanyProfilePicture);
 router.get("/me/drives", ...companyAccount, getManageDrives);
 router.get("/me/notifications", ...companyAccount, getCompanyNotificationSummary);
 router.post("/me/drives", ...companyAccount, createDrive);

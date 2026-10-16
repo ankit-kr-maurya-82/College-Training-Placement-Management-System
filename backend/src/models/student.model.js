@@ -103,6 +103,11 @@ const studentSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        profilePicturePublicId: {
+            type: String,
+            trim: true,
+            select: false,
+        },
         resetPasswordToken: {
             type: String,
             select: false,

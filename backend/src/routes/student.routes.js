@@ -9,6 +9,8 @@ import { requestPasswordReset, resetPassword } from "../controllers/password-res
 import { passwordResetRateLimit } from "../middlewares/password-reset-rate-limit.middleware.js";
 import { resendVerificationEmail, verifyEmail } from "../controllers/email-verification.controller.js";
 import { verificationResendRateLimit } from "../middlewares/email-verification-rate-limit.middleware.js";
+import { receiveProfilePicture } from "../middlewares/profile-picture-upload.middleware.js";
+import { uploadStudentProfilePicture } from "../controllers/profile-picture.controller.js";
 
 const router = express.Router();
 
@@ -20,6 +22,7 @@ router.post("/verify-email", (req, res) => { req.params.accountType = "STUDENT";
 router.post("/resend-verification", verificationResendRateLimit, (req, res) => { req.params.accountType = "STUDENT"; return resendVerificationEmail(req, res); });
 router.get("/me/profile", authenticateToken, requireActiveStudent, getMyStudentProfile);
 router.put("/me/profile", authenticateToken, requireActiveStudent, updateMyStudentProfile);
+router.post("/me/profile-picture", authenticateToken, requireActiveStudent, receiveProfilePicture, uploadStudentProfilePicture);
 router.get("/register", showStudents);
 router.get("/", showStudents);
 router.delete("/:id", deleteStudent);

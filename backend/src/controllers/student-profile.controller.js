@@ -22,6 +22,7 @@ function profileFrom(student) {
         twelfthPercentage: student.twelfthPercentage ?? null,
         skills: student.skills ?? [],
         resumeUrl: student.resumeUrl ?? "",
+        profilePictureUrl: student.profilePictureUrl ?? "",
     };
 }
 
@@ -110,7 +111,7 @@ export async function updateMyStudentProfile(req, res) {
             req.user.studentId,
             { $set: updates },
             { returnDocument: "after", runValidators: true },
-        ).select("name email phone department course graduationYear cgpa activeBacklogs tenthPercentage twelfthPercentage skills resumeUrl").lean();
+        ).select("name email phone department course graduationYear cgpa activeBacklogs tenthPercentage twelfthPercentage skills resumeUrl profilePictureUrl").lean();
         if (!student) return res.status(404).json({ message: "Student profile not found" });
         return res.status(200).json({ message: "Student profile updated successfully", student: profileFrom(student) });
     } catch (error) {
