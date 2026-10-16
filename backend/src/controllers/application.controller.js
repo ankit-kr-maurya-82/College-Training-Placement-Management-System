@@ -17,7 +17,7 @@ const transitions = {
 };
 const drivePopulation = {
     path: "drive",
-    select: "title location jobType workMode ctc driveDate applicationDeadline company",
+    select: "title description location jobType workMode ctc driveDate applicationDeadline openings requiredSkills eligibility company",
     populate: { path: "company", select: "name companyName logo" },
 };
 const studentPopulation = { path: "student", select: "name department course" };

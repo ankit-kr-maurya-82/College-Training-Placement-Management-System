@@ -118,21 +118,26 @@ describe("student applications", { concurrency: false }, () => {
     it("lists only the signed-in student's applications with pagination and status filter", async (t) => {
         let filter;
         let populateCalls = 0;
+        const populateArgs = [];
         const find = t.mock.method(Application, "find", (query) => {
             filter = query;
-            const q = queryChain([{ _id: applicationId }]);
+            const storedHistory = [{ status: "Applied", changedAt: new Date("2026-01-10T10:00:00Z"), changedBy: studentId }];
+            const q = queryChain([{ _id: applicationId, status: "Applied", statusHistory: storedHistory }]);
             const originalPopulate = q.populate;
-            q.populate = (...args) => { populateCalls += 1; return originalPopulate(...args); };
+            q.populate = (...args) => { populateCalls += 1; populateArgs.push(args[0]); return originalPopulate(...args); };
             return q;
         });
         t.mock.method(Application, "countDocuments", async () => 3);
         const res = response();
-        await getMyApplications({ user: { studentId }, query: { page: "2", limit: "2", status: "Shortlisted" } }, res);
+        await getMyApplications({ user: { studentId }, query: { page: "2", limit: "2", status: "Shortlisted", student: otherStudentId } }, res);
         assert.equal(res.statusCode, 200);
         assert.deepEqual(filter, { student: studentId, status: "Shortlisted" });
         assert.equal(find.mock.callCount(), 1);
         assert.equal(populateCalls, 2);
+        assert.match(populateArgs[0].select, /description/);
+        assert.match(populateArgs[0].select, /eligibility/);
         assert.deepEqual(res.body.pagination, { page: 2, limit: 2, total: 3, pages: 2 });
+        assert.deepEqual(res.body.applications[0].statusHistory, [{ status: "Applied", changedAt: new Date("2026-01-10T10:00:00Z"), changedBy: studentId }]);
     });
 
     it("enforces ownership for individual application views", async (t) => {
