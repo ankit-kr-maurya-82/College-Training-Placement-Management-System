@@ -149,14 +149,32 @@ export async function getCompanyNotificationSummary(req, res) {
         const drives = await Drive.find({ company: req.user.companyId }).select("_id").lean();
         const ids = drives.map((drive) => drive._id);
         const [deliveryCounts, jobs] = await Promise.all([
-            DriveNotification.aggregate([{ $match: { drive: { $in: ids } } }, { $group: { _id: { drive: "$drive", status: "$status" }, count: { $sum: 1 } } }]),
+            DriveNotification.aggregate([
+                { $match: { drive: { $in: ids } } },
+                { $group: {
+                    _id: { drive: "$drive", status: "$status" },
+                    count: { $sum: 1 },
+                    lastUpdatedAt: { $max: "$updatedAt" },
+                    lastSentAt: { $max: "$sentAt" },
+                } },
+            ]),
             DriveNotificationJob.find({ drive: { $in: ids } }).select("drive status").lean(),
         ]);
         const summaries = {};
-        for (const id of ids) summaries[String(id)] = { pending: 0, sent: 0, failed: 0, jobStatus: "" };
+        for (const id of ids) summaries[String(id)] = {
+            pending: 0,
+            sent: 0,
+            failed: 0,
+            jobStatus: "",
+            timestamps: { pending: null, sent: null, failed: null },
+        };
         for (const row of deliveryCounts) {
             const entry = summaries[String(row._id.drive)];
-            if (entry) entry[row._id.status.toLowerCase()] = row.count;
+            if (entry) {
+                const status = row._id.status.toLowerCase();
+                entry[status] = row.count;
+                entry.timestamps[status] = status === "sent" ? row.lastSentAt ?? null : row.lastUpdatedAt ?? null;
+            }
         }
         for (const job of jobs) if (summaries[String(job.drive)]) summaries[String(job.drive)].jobStatus = job.status;
         return res.status(200).json({ notifications: summaries });

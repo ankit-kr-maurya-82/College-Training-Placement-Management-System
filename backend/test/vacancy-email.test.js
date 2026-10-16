@@ -24,17 +24,22 @@ test("recipient validation and application URL use configured frontend", () => {
 });
 
 test("vacancy email contains a safe working application link", () => {
-    const email = createVacancyEmail({ title: "Engineer", description: "Build products", location: "Pune", ctc: "8 LPA", eligibility: { minCGPA: 7, allowedBranches: ["CSE"], graduationYear: 2027, maxBacklogs: 0 }, applicationDeadline: "2027-01-01" }, { name: "Example" }, "https://placements.example/drives/123");
+    const email = createVacancyEmail({ title: "Engineer", description: "Build products", location: "Pune", ctc: "8 LPA", requiredSkills: ["React", "SQL"], eligibility: { minCGPA: 7, allowedBranches: ["CSE"], graduationYear: 2027, maxBacklogs: 0 }, applicationDeadline: "2027-01-01" }, { name: "Example" }, "https://placements.example/drives/123");
     assert.match(email.html, /href="https:\/\/placements\.example\/drives\/123"/);
+    assert.equal((email.html.match(/href=/g) || []).length, 1);
     assert.match(email.html, /Apply Now/);
     assert.match(email.html, /Engineer/);
     assert.match(email.html, /Example/);
+    assert.match(email.html, /React, SQL/);
     assert.match(email.html, /Eligibility/);
     assert.match(email.html, /7/);
     assert.match(email.html, /2027/);
     assert.match(email.html, /Apply by/);
     assert.match(email.text, /Application deadline:/);
     assert.match(email.text, /Apply Now: https:\/\/placements\.example\/drives\/123/);
+    assert.match(email.text, /Location: Pune/);
+    assert.match(email.text, /Package: 8 LPA/);
+    assert.match(email.text, /React/);
 });
 
 test("SMTP failures are surfaced for delivery tracking without real email", async () => {
@@ -50,7 +55,11 @@ test("Gmail delivery uses secure SMTP and includes a plain text Apply Now link",
     setTransportFactory(async (options) => { transportOptions = options; return { sendMail: async (mail) => { message = mail; } }; });
     await sendVacancyEmail({ to: "student@example.edu", drive: { title: "Engineer", description: "Build products", location: "Pune", ctc: "8 LPA", applicationDeadline: "2027-01-01" }, company: { name: "Example" }, applyUrl: "https://example.test/drives/1" });
     assert.equal(transportOptions.host, "smtp.gmail.com");
+    assert.equal(transportOptions.port, 465);
     assert.equal(transportOptions.secure, true);
+    assert.equal(transportOptions.auth.user, "sender@example.com");
+    assert.equal(message.from, "sender@example.com");
+    assert.match(message.subject, /Engineer opportunity at Example/);
     assert.match(message.text, /Apply Now: https:\/\/example\.test\/drives\/1/);
     setTransportFactory(async (options) => (await import("nodemailer")).createTransport(options));
 });

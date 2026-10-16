@@ -41,6 +41,7 @@ export function createVacancyEmail(drive, company, applyUrl) {
         drive.description,
         `Location: ${drive.location}`,
         `Package: ${drive.ctc || "Not specified"}`,
+        `Required skills: ${(drive.requiredSkills || []).join(", ") || "As described in the role"}`,
         `Eligibility: ${criteria.replaceAll(" · ", "; ")}`,
         `Application deadline: ${new Date(drive.applicationDeadline).toLocaleDateString("en-IN")}`,
         `Apply Now: ${applyUrl}`,

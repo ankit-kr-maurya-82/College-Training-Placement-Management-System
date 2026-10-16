@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import RecruiterNav from '../../components/RecruiterNav.jsx'
 import { useAuth } from '../../context/auth.js'
 import { api } from '../../services/api.js'
@@ -44,6 +44,7 @@ export default function RecruiterDrives() {
   const [editingId, setEditingId] = useState('')
   const [busy, setBusy] = useState(false)
   const [processingId, setProcessingId] = useState('')
+  const processingLock = useRef(false)
   const [retryingId, setRetryingId] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -85,7 +86,8 @@ export default function RecruiterDrives() {
   }
 
   async function reprocess(drive) {
-    if (!isCompany || processingId || busy) return
+    if (!isCompany || processingLock.current || busy) return
+    processingLock.current = true
     setProcessingId(drive._id); setError(''); setNotice('')
     try {
       const result = await api.post(`/companies/me/drives/${drive._id}/notifications/reprocess`, {})
@@ -93,7 +95,7 @@ export default function RecruiterDrives() {
       const prefix = result.reprocessQueued ? 'Recipient selection was reprocessed. Delivery is pending.' : 'A notification job is already queued.'
       setNotice(`${drive.title}: ${prefix} ${counts}. Failed deliveries are not retried by this action.`)
       await load()
-    } catch (err) { setError(reprocessErrorMessage(err)) } finally { setProcessingId('') }
+    } catch (err) { setError(reprocessErrorMessage(err)) } finally { processingLock.current = false; setProcessingId('') }
   }
 
   async function retryFailed(drive) {
@@ -120,6 +122,10 @@ export default function RecruiterDrives() {
       const canReprocess = isCompany && drive.status === 'Published' && deadlineOpen
       const canRetry = isCompany && drive.status === 'Published' && (summary?.failed > 0 || summary?.jobStatus === 'FAILED')
       const hasNoNotifications = summary && !summary.sent && !summary.pending && !summary.failed && !summary.jobStatus
+      const timestampLabel = (status) => {
+        const value = summary?.timestamps?.[status]
+        return value && Number.isFinite(Date.parse(value)) ? new Date(value).toLocaleString() : null
+      }
       return <tr key={drive._id}>
         <td>{drive.title}<div className="muted">{drive.jobType} · {drive.location}</div></td>
         <td>{drive.status}</td>
@@ -127,7 +133,11 @@ export default function RecruiterDrives() {
           <span className="status-count pending">PENDING {summary ? Number(summary.pending) || 0 : '—'}</span>
           <span className="status-count sent">SENT {summary ? Number(summary.sent) || 0 : '—'}</span>
           <span className="status-count failed">FAILED {summary ? Number(summary.failed) || 0 : '—'}</span>
-        </div><div className="muted">Job: {summary?.jobStatus || '—'}{statusCheckedAt && <> · Counts checked {statusCheckedAt.toLocaleTimeString()}</>}</div></td>
+        </div><div className="muted">Job: {summary?.jobStatus || '—'}{statusCheckedAt && <> · Counts checked {statusCheckedAt.toLocaleTimeString()}</>}</div>
+          <div className="notification-timestamps" aria-label={`Notification timestamps for ${drive.title}`}>
+            {['pending', 'sent', 'failed'].map((status) => timestampLabel(status) && <div key={status} className="muted">Last {status} update: {timestampLabel(status)}</div>)}
+          </div>
+        </td>
         <td>{new Date(drive.applicationDeadline).toLocaleDateString()}</td>
         <td><div className="drive-manage-actions">
           {['Draft', 'Published'].includes(drive.status) && <button type="button" onClick={() => edit(drive)}>Edit</button>}
