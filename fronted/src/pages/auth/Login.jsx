@@ -90,6 +90,7 @@ export default function Login() {
       <button className="button" disabled={busy}>{busy ? 'Signing in…' : `Log in as ${accountTypes.find((type) => type.id === accountType)?.label}`}</button>
     </form>
     {accountType !== 'MANAGER' && <p className="muted"><Link to={`/forgot-password?type=${accountType.toLowerCase()}`}>Forgot password?</Link></p>}
+    {accountType !== 'MANAGER' && <p className="muted"><Link to={`/resend-verification?type=${accountType.toLowerCase()}`}>Didn’t receive verification email?</Link></p>}
     {accountType !== 'MANAGER' && <p className="muted">New here? <Link to={`/register?role=${accountType}`}>Register {accountType === 'COMPANY' ? 'your company' : 'as a student'}</Link></p>}
     {accountType === 'MANAGER' && <p className="muted">Staff accounts are created by the system administrator; public TPO registration is disabled.</p>}
   </section>

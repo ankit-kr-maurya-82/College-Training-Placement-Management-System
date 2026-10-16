@@ -21,6 +21,10 @@ const companySchema = new mongoose.Schema({
     hrContact: { type: String, trim: true },
     logo: { type: String, trim: true },
     isActive: { type: Boolean, default: true },
+    // Missing values on legacy documents are treated as verified by login handlers.
+    isEmailVerified: { type: Boolean, default: false, index: true },
+    emailVerificationToken: { type: String, select: false },
+    emailVerificationExpires: { type: Date, select: false },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 }, { timestamps: true });
 

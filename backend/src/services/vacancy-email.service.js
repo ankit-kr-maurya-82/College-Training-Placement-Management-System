@@ -95,3 +95,15 @@ export async function sendPasswordResetEmail({ to, url }) {
         html: `<p>A password reset was requested for your account.</p><p><a href="${url}">Reset your password</a> (valid for 15 minutes).</p><p>If you did not request this, you can ignore this email.</p>`,
     });
 }
+
+export async function sendEmailVerification({ to, url }) {
+    const { from } = getSmtpOptions();
+    const transport = await getTransport();
+    return transport.sendMail({
+        from,
+        to,
+        subject: "Verify your Placement System email",
+        text: `Welcome to the College Training and Placement Management System. Verify your email using this link within 24 hours: ${url}\n\nIf you cannot open the link, copy and paste it into your browser. If you did not create this account, you can ignore this email.`,
+        html: `<h2>College Training and Placement Management System</h2><p>Please verify your email address to activate your account.</p><p><a href="${url}">Verify email</a> (link expires in 24 hours).</p><p>If the button does not work, copy and paste this link into your browser:<br><a href="${url}">${url}</a></p><p>If you did not create this account, you can ignore this email.</p>`,
+    });
+}

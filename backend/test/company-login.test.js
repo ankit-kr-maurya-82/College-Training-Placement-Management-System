@@ -51,6 +51,7 @@ describe("POST /api/v1/companies/login", { concurrency: false }, () => {
             hrName: "Example HR",
             hrEmail: "hr@example.com",
             hrPassword: credentials.hrPassword,
+            isEmailVerified: true,
         });
         t.mock.method(Company, "findOne", async (query) => (
             query.hrEmail === company.hrEmail ? company : null

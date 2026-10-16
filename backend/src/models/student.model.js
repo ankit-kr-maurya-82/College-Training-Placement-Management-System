@@ -35,6 +35,10 @@ const studentSchema = new mongoose.Schema(
             default: true,
             index: true,
         },
+        // Missing values on legacy documents are treated as verified by login handlers.
+        isEmailVerified: { type: Boolean, default: false, index: true },
+        emailVerificationToken: { type: String, select: false },
+        emailVerificationExpires: { type: Date, select: false },
         rollNumber: {
             type: String,
             // required: true,

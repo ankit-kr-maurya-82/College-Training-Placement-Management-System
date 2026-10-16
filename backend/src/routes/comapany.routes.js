@@ -17,6 +17,8 @@ import { closeDrive, createDrive, deleteDrive, getManageDrives, publishDrive, up
 import { getCompanyNotificationSummary, reprocessCompanyNotifications, retryFailedNotifications } from "../controllers/drive-notification.controller.js";
 import { requestPasswordReset, resetPassword } from "../controllers/password-reset.controller.js";
 import { passwordResetRateLimit } from "../middlewares/password-reset-rate-limit.middleware.js";
+import { resendVerificationEmail, verifyEmail } from "../controllers/email-verification.controller.js";
+import { verificationResendRateLimit } from "../middlewares/email-verification-rate-limit.middleware.js";
 
 const router = express.Router();
 const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
@@ -26,6 +28,8 @@ router.post("/register", registerCompany);
 router.post("/login", loginCompany);
 router.post("/forgot-password", passwordResetRateLimit, (req, res) => { req.params.accountType = "COMPANY"; return requestPasswordReset(req, res); });
 router.post("/reset-password", passwordResetRateLimit, (req, res) => { req.params.accountType = "COMPANY"; return resetPassword(req, res); });
+router.post("/verify-email", (req, res) => { req.params.accountType = "COMPANY"; return verifyEmail(req, res); });
+router.post("/resend-verification", verificationResendRateLimit, (req, res) => { req.params.accountType = "COMPANY"; return resendVerificationEmail(req, res); });
 
 const companyAccount = [authenticateToken, authorizeRoles("COMPANY"), requireActiveCompany];
 router.get("/me/dashboard", ...companyAccount, getCompanyDashboard);

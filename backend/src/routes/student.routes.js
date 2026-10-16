@@ -7,6 +7,8 @@ import { getMyStudentProfile, updateMyStudentProfile } from "../controllers/stud
 import { authenticateToken, requireActiveStudent } from "../middlewares/auth.middleware.js";
 import { requestPasswordReset, resetPassword } from "../controllers/password-reset.controller.js";
 import { passwordResetRateLimit } from "../middlewares/password-reset-rate-limit.middleware.js";
+import { resendVerificationEmail, verifyEmail } from "../controllers/email-verification.controller.js";
+import { verificationResendRateLimit } from "../middlewares/email-verification-rate-limit.middleware.js";
 
 const router = express.Router();
 
@@ -14,6 +16,8 @@ router.post("/register", registerStudent);
 router.post("/login", loginStudents);
 router.post("/forgot-password", passwordResetRateLimit, (req, res) => { req.params.accountType = "STUDENT"; return requestPasswordReset(req, res); });
 router.post("/reset-password", passwordResetRateLimit, (req, res) => { req.params.accountType = "STUDENT"; return resetPassword(req, res); });
+router.post("/verify-email", (req, res) => { req.params.accountType = "STUDENT"; return verifyEmail(req, res); });
+router.post("/resend-verification", verificationResendRateLimit, (req, res) => { req.params.accountType = "STUDENT"; return resendVerificationEmail(req, res); });
 router.get("/me/profile", authenticateToken, requireActiveStudent, getMyStudentProfile);
 router.put("/me/profile", authenticateToken, requireActiveStudent, updateMyStudentProfile);
 router.get("/register", showStudents);

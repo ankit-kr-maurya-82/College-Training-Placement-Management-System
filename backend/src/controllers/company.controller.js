@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { Drive } from '../models/drive.model.js';
 import { Application } from '../models/application.model.js';
+import { createVerificationToken, createVerificationUrl, requiresEmailVerification, sendVerificationEmail } from "../services/email-verification.service.js";
 
 const companyFields = ["name", "description", "website", "location", "industry", "hrEmail", "hrContact", "logo", "isActive"];
 const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -205,6 +206,7 @@ const registerCompany = async(req, res) => {
             return res.status(400).json({message: "HR email already exists"});
         }
 
+        const verification = createVerificationToken();
         const company = await Company.create({
             companyName: companyName.trim(),
             hrName: hrName.trim(),
@@ -213,11 +215,24 @@ const registerCompany = async(req, res) => {
             hrPhoneNumber: hrPhoneNumber.trim(),
             location: location.trim(),
             website: website.trim(),
-            description: description.trim()
+            description: description.trim(),
+            isEmailVerified: false,
+            emailVerificationToken: verification.tokenHash,
+            emailVerificationExpires: verification.expires,
         });
+
+        try {
+            await sendVerificationEmail({ to: company.hrEmail, url: createVerificationUrl("COMPANY", verification.token) });
+        } catch {
+            company.emailVerificationToken = undefined;
+            company.emailVerificationExpires = undefined;
+            await company.save().catch(() => {});
+        }
 
         const companyData = company.toObject();
         delete companyData.hrPassword;
+        delete companyData.emailVerificationToken;
+        delete companyData.emailVerificationExpires;
         return res.status(201).json(companyData);
     }catch(error){
         if(error.code === 11000){
@@ -288,6 +303,10 @@ const loginCompany = async (req, res) => {
             return res
                 .status(401)
                 .json({ message: "Invalid password" });
+        }
+
+        if (requiresEmailVerification(company)) {
+            return res.status(403).json({ message: "Please verify your email before logging in." });
         }
 
         const companyData = company.toObject();

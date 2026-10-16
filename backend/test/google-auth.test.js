@@ -92,6 +92,7 @@ describe("Google student authentication", { concurrency: false }, () => {
                 googleId: "google-subject-123",
                 name: "Google Student",
                 email: "student@example.com",
+                isEmailVerified: true,
             });
             return createdStudent;
         });

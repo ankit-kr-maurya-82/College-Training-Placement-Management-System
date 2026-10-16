@@ -1,7 +1,7 @@
 import { Student } from "../models/student.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { randomBytes, createHash } from "node:crypto";
+import { createVerificationToken, createVerificationUrl, requiresEmailVerification, sendVerificationEmail } from "../services/email-verification.service.js";
 
 export function createStudentToken(student) {
     return jwt.sign(
@@ -50,17 +50,24 @@ const registerStudent = async (req, res) => {
             name: name.trim(),
             email: email.trim().toLowerCase(),
             password: hashedPassword,
+            isEmailVerified: false,
         });
-
-        // Generate a JWT token for the registered student
-        const token = createStudentToken(newStudent);
-
+        const verification = createVerificationToken();
+        newStudent.emailVerificationToken = verification.tokenHash;
+        newStudent.emailVerificationExpires = verification.expires;
         await newStudent.save();
 
+        try {
+            await sendVerificationEmail({ to: newStudent.email, url: createVerificationUrl("STUDENT", verification.token) });
+        } catch {
+            newStudent.emailVerificationToken = undefined;
+            newStudent.emailVerificationExpires = undefined;
+            await newStudent.save().catch(() => {});
+        }
+
         return res.status(201).json({
-            message: "Student registered successfully",
+            message: "Student registered. Check your email for a verification link before logging in.",
             student: publicStudent(newStudent),
-            token,
         });
         
 
@@ -153,6 +160,10 @@ const loginStudents = async (req, res) => {
             return res
                 .status(401)
                 .json({ message: "Invalid password" });
+        }
+
+        if (requiresEmailVerification(student)) {
+            return res.status(403).json({ message: "Please verify your email before logging in." });
         }
 
         const token = createStudentToken(student);

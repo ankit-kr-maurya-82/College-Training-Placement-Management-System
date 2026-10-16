@@ -14,6 +14,7 @@ export default function Register() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [googleBusy, setGoogleBusy] = useState(false)
+  const [registeredEmail, setRegisteredEmail] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const processing = useRef(false)
 
@@ -28,7 +29,7 @@ export default function Register() {
     try {
       if (accountType === 'STUDENT') {
         await register({ name: form.name, email: form.email, password: form.password })
-        navigate('/')
+        setRegisteredEmail(form.email)
       } else {
         await registerCompany({
           companyName: form.companyName,
@@ -40,7 +41,7 @@ export default function Register() {
           website: form.website,
           description: form.description,
         })
-        navigate('/login?role=COMPANY&registered=1')
+        setRegisteredEmail(form.email)
       }
     } catch (requestError) {
       setError(requestError.message)
@@ -74,6 +75,8 @@ export default function Register() {
 
   const passwordChecks = [form.password.length >= 8, /[A-Z]/.test(form.password), /[0-9]/.test(form.password)]
   const passwordScore = passwordChecks.filter(Boolean).length
+
+  if (registeredEmail) return <section className="auth-card"><p className="eyebrow">CHECK YOUR EMAIL</p><h1>Verify your email address</h1><p className="muted">We sent a verification link to <strong>{registeredEmail}</strong>. Open it within 24 hours before logging in.</p><p className="muted">If the message does not arrive, use the resend option below.</p><a className="button" href={`/resend-verification?type=${accountType.toLowerCase()}&email=${encodeURIComponent(registeredEmail)}`}>Resend verification email</a><p className="muted"><Link to={`/login?role=${accountType}`}>Back to login</Link></p></section>
 
   return <section className="auth-card auth-card-wide auth-register">
     <div className="auth-welcome"><span className="auth-welcome-icon"><Sparkles size={20}/></span><span>BUILD YOUR NEXT OPPORTUNITY</span></div>

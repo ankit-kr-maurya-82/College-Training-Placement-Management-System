@@ -84,6 +84,7 @@ export async function loginWithGoogle(req, res) {
             googleId,
             name: payload.name.trim(),
             email,
+            isEmailVerified: true,
         });
         return signedInStudent(res, student, 201, "Student registered successfully");
     } catch (error) {

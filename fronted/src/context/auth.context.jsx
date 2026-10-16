@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
     if (typeof credential !== 'string' || !credential) throw new Error('A Google credential is required.')
     saveSession(await api.post('/auth/google', { credential }))
   }
-  async function register(details) { saveSession(await api.post('/students/register', details)) }
+  async function register(details) { return api.post('/students/register', details) }
   async function registerCompany(details) { return api.post('/companies/register', details) }
   function logout() {
     sessionStorage.removeItem('placement-token')

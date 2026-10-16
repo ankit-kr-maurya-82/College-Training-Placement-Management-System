@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { loginStudents, registerStudent } from "../src/controllers/student.controller.js";
 import { Student } from "../src/models/student.model.js";
+import { setVerificationEmailSender } from "../src/services/email-verification.service.js";
 
 const credentials = {
     name: "  Example Student  ",
@@ -59,10 +60,14 @@ function assertNoWrites(models) {
 
 describe("student registration and login", { concurrency: false }, () => {
     let originalSecret;
+    let originalFrontend;
 
     beforeEach(() => {
         originalSecret = process.env.JWT_SECRET;
+        originalFrontend = process.env.FRONTEND_URL;
         process.env.JWT_SECRET = testSecret;
+        process.env.FRONTEND_URL = "https://placement.example";
+        setVerificationEmailSender(async () => {});
     });
 
     afterEach(() => {
@@ -71,9 +76,11 @@ describe("student registration and login", { concurrency: false }, () => {
         } else {
             process.env.JWT_SECRET = originalSecret;
         }
+        if (originalFrontend === undefined) delete process.env.FRONTEND_URL;
+        else process.env.FRONTEND_URL = originalFrontend;
     });
 
-    it("saves a hashed password once, responds after saving, and supports subsequent login", async (t) => {
+    it("saves a hashed password and unverified status without creating a login session", async (t) => {
         let savedStudent;
         const registration = response();
         const models = stubDatabase(t, {
@@ -97,23 +104,21 @@ describe("student registration and login", { concurrency: false }, () => {
         assert.equal(bcrypt.getRounds(savedStudent.password), 10);
         assert.equal(await bcrypt.compare(credentials.password.trim(), savedStudent.password), true);
         assert.deepEqual(registration.body, {
-            message: "Student registered successfully",
+            message: "Student registered. Check your email for a verification link before logging in.",
             student: {
                 _id: savedStudent._id.toString(),
                 name: "Example Student",
                 email: "student@example.com",
             },
-            token: registration.body.token,
         });
-        const token = jwt.verify(registration.body.token, testSecret);
-        assert.equal(token.studentId, savedStudent._id.toString());
-        assert.equal(token.email, "student@example.com");
-        assert.equal(token.exp - token.iat, 3600);
+        assert.equal(savedStudent.isEmailVerified, false);
+        assert.match(savedStudent.emailVerificationToken, /^[a-f\d]{64}$/);
+        assert.equal(registration.body.token, undefined);
         assert.equal(JSON.stringify(registration.body).includes(credentials.password.trim()), false);
         assert.equal(JSON.stringify(registration.body).includes(savedStudent.password), false);
 
         for (const [password, expectedStatus] of [
-            [credentials.password, 200],
+            [credentials.password, 403],
             ["incorrect-password", 401],
             [savedStudent.password, 401],
         ]) {
@@ -132,6 +137,11 @@ describe("student registration and login", { concurrency: false }, () => {
                 assert.equal(loginToken.email, "student@example.com");
             }
         }
+        savedStudent.isEmailVerified = true;
+        const verifiedLogin = response();
+        await loginStudents({ body: { email: credentials.email, password: credentials.password } }, verifiedLogin);
+        assert.equal(verifiedLogin.statusCode, 200);
+        assert.equal(jwt.verify(verifiedLogin.body.token, testSecret).studentId, savedStudent._id.toString());
         assert.equal(models.save.mock.callCount(), 1, "Login must not persist another student");
         assert.equal(models.create.mock.callCount(), 0);
     });
@@ -168,23 +178,17 @@ describe("student registration and login", { concurrency: false }, () => {
         assertNoWrites(models);
     });
 
-    it("returns one error without saving if JWT signing fails", async (t) => {
-        delete process.env.JWT_SECRET;
-        const models = stubDatabase(t);
-        t.mock.method(console, "error", () => {});
+    it("allows legacy documents without a verification field to keep logging in", async (t) => {
+        const student = { _id: "legacy-student", name: "Legacy", email: "student@example.com", password: credentials.password.trim() };
+        stubDatabase(t, { findOne: async () => student });
         const res = response();
-
-        await registerStudent({ body: credentials }, res);
-
-        assert.deepEqual(res.statuses, [500]);
-        assert.equal(res.jsonCalls, 1);
-        assert.equal(res.body.message, "Error registering student");
-        assertNoWrites(models);
+        await loginStudents({ body: { email: credentials.email, password: credentials.password } }, res);
+        assert.equal(res.statusCode, 200);
     });
 
     it("does not expose JWT configuration errors during login", async (t) => {
         delete process.env.JWT_SECRET;
-        const student = new Student({ name: "Example Student", email: "student@example.com", password: credentials.password.trim() });
+        const student = new Student({ name: "Example Student", email: "student@example.com", password: credentials.password.trim(), isEmailVerified: true });
         stubDatabase(t, { findOne: async () => student });
         t.mock.method(console, "error", () => {});
         const res = response();
@@ -227,11 +231,7 @@ describe("student registration and login", { concurrency: false }, () => {
     });
 
     it("preserves trimmed password login for legacy plaintext accounts", async (t) => {
-        const student = new Student({
-            name: "Legacy Student",
-            email: "student@example.com",
-            password: credentials.password.trim(),
-        });
+        const student = { _id: "legacy-student", name: "Legacy Student", email: "student@example.com", password: credentials.password.trim() };
         const models = stubDatabase(t, { findOne: async () => student });
 
         for (const [password, expectedStatus] of [
