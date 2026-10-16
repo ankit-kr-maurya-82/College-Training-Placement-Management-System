@@ -15,6 +15,8 @@ const companySchema = new mongoose.Schema({
     hrEmail: { type: String, trim: true, lowercase: true, unique: true, sparse: true, validate: { validator: (value) => !value || emailPattern.test(value), message: "HR email must be valid" } },
     hrName: { type: String, trim: true },
     hrPassword: { type: String },
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
     hrPhoneNumber: { type: String, trim: true },
     hrContact: { type: String, trim: true },
     logo: { type: String, trim: true },

@@ -83,3 +83,15 @@ export async function sendVacancyEmail({ to, drive, company, applyUrl }) {
     const transport = await getTransport();
     return transport.sendMail({ from, to, ...createVacancyEmail(drive, company, applyUrl) });
 }
+
+export async function sendPasswordResetEmail({ to, url }) {
+    const { from } = getSmtpOptions();
+    const transport = await getTransport();
+    return transport.sendMail({
+        from,
+        to,
+        subject: "Reset your placement system password",
+        text: `A password reset was requested for your account. Use this link within 15 minutes: ${url}\n\nIf you did not request this, you can ignore this email.`,
+        html: `<p>A password reset was requested for your account.</p><p><a href="${url}">Reset your password</a> (valid for 15 minutes).</p><p>If you did not request this, you can ignore this email.</p>`,
+    });
+}

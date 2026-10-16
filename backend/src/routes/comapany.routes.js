@@ -15,6 +15,8 @@ import { authenticateToken, requireActiveCompany } from "../middlewares/auth.mid
 import { authorizeRoles } from "../middlewares/role.middleware.js";
 import { closeDrive, createDrive, deleteDrive, getManageDrives, publishDrive, updateDrive } from "../controllers/drive.controller.js";
 import { getCompanyNotificationSummary, reprocessCompanyNotifications, retryFailedNotifications } from "../controllers/drive-notification.controller.js";
+import { requestPasswordReset, resetPassword } from "../controllers/password-reset.controller.js";
+import { passwordResetRateLimit } from "../middlewares/password-reset-rate-limit.middleware.js";
 
 const router = express.Router();
 const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
@@ -22,6 +24,8 @@ const companyManagers = [authenticateToken, authorizeRoles("ADMIN", "TPO")];
 // The legacy self-registration and login routes remain available.
 router.post("/register", registerCompany);
 router.post("/login", loginCompany);
+router.post("/forgot-password", passwordResetRateLimit, (req, res) => { req.params.accountType = "COMPANY"; return requestPasswordReset(req, res); });
+router.post("/reset-password", passwordResetRateLimit, (req, res) => { req.params.accountType = "COMPANY"; return resetPassword(req, res); });
 
 const companyAccount = [authenticateToken, authorizeRoles("COMPANY"), requireActiveCompany];
 router.get("/me/dashboard", ...companyAccount, getCompanyDashboard);

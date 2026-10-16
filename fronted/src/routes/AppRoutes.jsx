@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { Shell, Protected } from '../components/SiteLayout.jsx'
 import Login from '../pages/auth/Login.jsx'
 import Register from '../pages/auth/Register.jsx'
+import { ForgotPassword, ResetPassword } from '../pages/auth/PasswordRecovery.jsx'
 import Drives, { Home } from '../pages/student/Dashboard.jsx'
 import DriveDetails from '../pages/student/DriveDetails.jsx'
 import Companies from '../pages/student/Companies.jsx'
@@ -27,6 +28,8 @@ export default function AppRoutes() {
                     <Route path="/" element={<Home />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/company" element={<Protected role="COMPANY"><RecruiterDashboard /></Protected>} />
                     <Route path="/company/drives" element={<Protected role="COMPANY"><RecruiterDrives /></Protected>} />
                     <Route path="/company/applications" element={<Protected role="COMPANY"><RecruiterApplications /></Protected>} />

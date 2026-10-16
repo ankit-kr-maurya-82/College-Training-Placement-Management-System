@@ -101,10 +101,12 @@ const studentSchema = new mongoose.Schema(
         },
         resetPasswordToken: {
             type: String,
+            select: false,
             trim: true,
         },
         resetPasswordExpires: {
             type: Date,
+            select: false,
         },
     },
     { timestamps: true },

@@ -89,6 +89,7 @@ export default function Login() {
       <label>Password<div className="password-field"><LockKeyhole size={16}/><input required type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}/><button type="button" className="password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17}/> : <Eye size={17}/>}</button></div></label>
       <button className="button" disabled={busy}>{busy ? 'Signing in…' : `Log in as ${accountTypes.find((type) => type.id === accountType)?.label}`}</button>
     </form>
+    {accountType !== 'MANAGER' && <p className="muted"><Link to={`/forgot-password?type=${accountType.toLowerCase()}`}>Forgot password?</Link></p>}
     {accountType !== 'MANAGER' && <p className="muted">New here? <Link to={`/register?role=${accountType}`}>Register {accountType === 'COMPANY' ? 'your company' : 'as a student'}</Link></p>}
     {accountType === 'MANAGER' && <p className="muted">Staff accounts are created by the system administrator; public TPO registration is disabled.</p>}
   </section>
