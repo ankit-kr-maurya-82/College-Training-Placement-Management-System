@@ -2,6 +2,7 @@ import { Application } from "../models/application.model.js";
 import { Company } from "../models/company.model.js";
 import { Drive } from "../models/drive.model.js";
 import { Student } from "../models/student.model.js";
+import mongoose from "mongoose";
 
 const statuses = ["Applied", "Under Review", "Shortlisted", "Interview Scheduled", "Selected", "Rejected", "Withdrawn"];
 const managerStatuses = new Set(["Under Review", "Shortlisted", "Interview Scheduled", "Selected", "Rejected"]);
@@ -98,7 +99,42 @@ export async function applyForDrive(req, res) {
 export async function getMyApplications(req, res) {
     const studentId = studentIdFrom(req.user);
     if (!studentId) return res.status(403).json({ message: "A student account is required" });
-    return listApplications(req, res, { student: studentId });
+    const filter = { student: studentId };
+    const search = typeof req.query.search === "string" ? req.query.search.trim() : "";
+    if (search.length > 100) return res.status(400).json({ message: "Search must be 100 characters or fewer" });
+    if (search) {
+        const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const expression = new RegExp(escapedSearch, "i");
+        try {
+            const matchingCompanies = await Company.find({ $or: [{ name: expression }, { companyName: expression }] }).select("_id").lean();
+            const matchingDrives = await Drive.find({
+                $or: [{ title: expression }, { company: { $in: matchingCompanies.map(({ _id }) => _id) } }],
+            }).select("_id").lean();
+            filter.drive = { $in: matchingDrives.map(({ _id }) => _id) };
+        } catch (error) { return safeError(res, error, "searching"); }
+    }
+    const dateRange = {};
+    for (const key of ["from", "to"]) {
+        const value = req.query[key];
+        if (value === undefined || value === "") continue;
+        if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+            return res.status(400).json({ message: `Invalid ${key} application date` });
+        }
+        const parsed = new Date(`${value}T00:00:00.000Z`);
+        if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+            return res.status(400).json({ message: `Invalid ${key} application date` });
+        }
+        if (key === "from") dateRange.$gte = parsed;
+        else {
+            parsed.setUTCDate(parsed.getUTCDate() + 1);
+            dateRange.$lt = parsed;
+        }
+    }
+    if (dateRange.$gte && dateRange.$lt && dateRange.$gte >= dateRange.$lt) {
+        return res.status(400).json({ message: "The start date must not be after the end date" });
+    }
+    if (Object.keys(dateRange).length) filter.appliedAt = dateRange;
+    return listApplications(req, res, filter, { studentId });
 }
 
 export async function getApplications(req, res) {
@@ -127,18 +163,35 @@ export async function getApplications(req, res) {
     return listApplications(req, res, filter);
 }
 
-async function listApplications(req, res, filter) {
+async function listApplications(req, res, filter, { studentId } = {}) {
     const page = Number(req.query.page ?? 1);
     const limit = Number(req.query.limit ?? 10);
     if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) return res.status(400).json({ message: "page must be positive and limit must be between 1 and 100" });
     if (req.query.status && !statuses.includes(String(req.query.status))) return res.status(400).json({ message: "Invalid application status" });
     if (req.query.status) filter.status = String(req.query.status);
     try {
-        const [applications, total] = await Promise.all([
+        const [applications, total, statusGroups] = await Promise.all([
             Application.find(filter).sort({ appliedAt: -1 }).skip((page - 1) * limit).limit(limit).populate(drivePopulation).populate(studentPopulation).lean(),
             Application.countDocuments(filter),
+            studentId
+                ? Application.aggregate([
+                    { $match: { student: new mongoose.Types.ObjectId(studentId) } },
+                    { $group: { _id: "$status", count: { $sum: 1 } } },
+                ])
+                : Promise.resolve(null),
         ]);
-        return res.status(200).json({ applications, pagination: { page, limit, total, pages: Math.ceil(total / limit) } });
+        const response = { applications, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
+        if (statusGroups) {
+            const counts = Object.fromEntries(statusGroups.map(({ _id, count }) => [_id, count]));
+            response.summary = {
+                total: statusGroups.reduce((sum, group) => sum + group.count, 0),
+                pending: ["Applied", "Under Review", "Interview Scheduled"].reduce((sum, status) => sum + (counts[status] ?? 0), 0),
+                shortlisted: counts.Shortlisted ?? 0,
+                selected: counts.Selected ?? 0,
+                rejected: counts.Rejected ?? 0,
+            };
+        }
+        return res.status(200).json(response);
     } catch (error) { return safeError(res, error, "listing"); }
 }
 

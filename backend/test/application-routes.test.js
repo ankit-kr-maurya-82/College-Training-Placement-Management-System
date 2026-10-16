@@ -73,10 +73,12 @@ describe("application route authentication", { concurrency: false }, () => {
             return query;
         });
         t.mock.method(Application, "countDocuments", async () => 0);
+        t.mock.method(Application, "aggregate", async () => []);
         const studentToken = jwt.sign({ studentId }, secret);
         const response = await get(`${baseUrl}/my`, studentToken);
         assert.equal(response.status, 200);
         assert.deepEqual(response.body.applications, []);
+        assert.deepEqual(response.body.summary, { total: 0, pending: 0, shortlisted: 0, selected: 0, rejected: 0 });
         assert.equal(find.mock.callCount(), 1);
     });
 

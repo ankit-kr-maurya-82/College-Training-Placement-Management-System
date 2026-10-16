@@ -128,6 +128,15 @@ describe("student applications", { concurrency: false }, () => {
             return q;
         });
         t.mock.method(Application, "countDocuments", async () => 3);
+        t.mock.method(Application, "aggregate", async () => [
+            { _id: "Applied", count: 2 },
+            { _id: "Under Review", count: 1 },
+            { _id: "Interview Scheduled", count: 1 },
+            { _id: "Shortlisted", count: 1 },
+            { _id: "Selected", count: 1 },
+            { _id: "Rejected", count: 1 },
+            { _id: "Withdrawn", count: 1 },
+        ]);
         const res = response();
         await getMyApplications({ user: { studentId }, query: { page: "2", limit: "2", status: "Shortlisted", student: otherStudentId } }, res);
         assert.equal(res.statusCode, 200);
@@ -137,7 +146,37 @@ describe("student applications", { concurrency: false }, () => {
         assert.match(populateArgs[0].select, /description/);
         assert.match(populateArgs[0].select, /eligibility/);
         assert.deepEqual(res.body.pagination, { page: 2, limit: 2, total: 3, pages: 2 });
+        assert.deepEqual(res.body.summary, { total: 8, pending: 4, shortlisted: 1, selected: 1, rejected: 1 });
         assert.deepEqual(res.body.applications[0].statusHistory, [{ status: "Applied", changedAt: new Date("2026-01-10T10:00:00Z"), changedBy: studentId }]);
+    });
+
+    it("searches owned applications by drive or company and filters inclusive application dates", async (t) => {
+        let applicationFilter;
+        const resultQuery = (value) => {
+            const query = { select: () => query, lean: async () => value };
+            return query;
+        };
+        t.mock.method(Company, "find", (filter) => {
+            assert.ok(filter.$or.some((entry) => entry.name));
+            return resultQuery([{ _id: "507f1f77bcf86cd799439017" }]);
+        });
+        t.mock.method(Drive, "find", (filter) => {
+            assert.ok(filter.$or.some((entry) => entry.title));
+            return resultQuery([{ _id: driveId }]);
+        });
+        t.mock.method(Application, "find", (filter) => {
+            applicationFilter = filter;
+            return queryChain([]);
+        });
+        t.mock.method(Application, "countDocuments", async () => 0);
+        t.mock.method(Application, "aggregate", async () => []);
+        const res = response();
+        await getMyApplications({ user: { studentId }, query: { search: "engineer", from: "2026-02-01", to: "2026-02-28" } }, res);
+        assert.equal(res.statusCode, 200);
+        assert.equal(applicationFilter.student, studentId);
+        assert.deepEqual(applicationFilter.drive, { $in: [driveId] });
+        assert.deepEqual(applicationFilter.appliedAt, { $gte: new Date("2026-02-01T00:00:00.000Z"), $lt: new Date("2026-03-01T00:00:00.000Z") });
+        assert.deepEqual(res.body.summary, { total: 0, pending: 0, shortlisted: 0, selected: 0, rejected: 0 });
     });
 
     it("enforces ownership for individual application views", async (t) => {
