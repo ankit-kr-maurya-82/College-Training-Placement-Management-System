@@ -28,7 +28,7 @@ export async function requireActiveStudent(req, res, next) {
     }
     try {
         const student = await Student.findById(studentId)
-            .select("isActive name email phone cgpa department course graduationYear skills resumeUrl activeBacklogs")
+            .select("isActive name email phone cgpa department course graduationYear skills resumeUrl activeBacklogs tenthPercentage twelfthPercentage")
             .lean();
         if (!student) return res.status(401).json({ message: "Student account not found" });
         if (student.isActive === false) return res.status(403).json({ message: "Student account is disabled" });

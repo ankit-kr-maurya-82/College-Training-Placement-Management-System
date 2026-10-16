@@ -3,7 +3,7 @@ import { api } from '../../services/api.js'
 
 export default function StudentProfile() {
   const [profile, setProfile] = useState(null)
-  const [form, setForm] = useState({ name: '', phone: '', department: '', course: '', graduationYear: '', cgpa: '', skills: '', resumeUrl: '' })
+  const [form, setForm] = useState({ name: '', phone: '', department: '', course: '', graduationYear: '', cgpa: '', activeBacklogs: '', tenthPercentage: '', twelfthPercentage: '', skills: '', resumeUrl: '' })
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -13,7 +13,7 @@ export default function StudentProfile() {
     api.get('/students/me/profile')
       .then(({ student }) => {
         setProfile(student)
-        setForm({ name: student.name || '', phone: student.phone || '', department: student.department || '', course: student.course || '', graduationYear: student.graduationYear ?? '', cgpa: student.cgpa ?? '', skills: (student.skills || []).join(', '), resumeUrl: student.resumeUrl || '' })
+        setForm({ name: student.name || '', phone: student.phone || '', department: student.department || '', course: student.course || '', graduationYear: student.graduationYear ?? '', cgpa: student.cgpa ?? '', activeBacklogs: student.activeBacklogs ?? '', tenthPercentage: student.tenthPercentage ?? '', twelfthPercentage: student.twelfthPercentage ?? '', skills: (student.skills || []).join(', '), resumeUrl: student.resumeUrl || '' })
       })
       .catch((requestError) => setError(requestError.message))
       .finally(() => setLoading(false))
@@ -37,6 +37,9 @@ export default function StudentProfile() {
       course: form.course,
       graduationYear: form.graduationYear === '' ? null : Number(form.graduationYear),
       cgpa: form.cgpa === '' ? null : Number(form.cgpa),
+      activeBacklogs: form.activeBacklogs === '' ? null : Number(form.activeBacklogs),
+      tenthPercentage: form.tenthPercentage === '' ? null : Number(form.tenthPercentage),
+      twelfthPercentage: form.twelfthPercentage === '' ? null : Number(form.twelfthPercentage),
       skills: form.skills.split(',').map((skill) => skill.trim()).filter(Boolean),
       resumeUrl: form.resumeUrl,
     }
@@ -72,6 +75,11 @@ export default function StudentProfile() {
           <label>CGPA<input name="cgpa" type="number" min="0" max="10" step="0.01" value={form.cgpa} onChange={updateField} /></label>
           <label>Skills <small>Separate skills with commas.</small><input name="skills" maxLength="1600" value={form.skills} onChange={updateField} /></label>
         </div>
+        <div className="form-pair">
+          <label>Active backlogs<input name="activeBacklogs" type="number" min="0" step="1" value={form.activeBacklogs} onChange={updateField} /></label>
+          <label>10th percentage<input name="tenthPercentage" type="number" min="0" max="100" step="0.01" value={form.tenthPercentage} onChange={updateField} /></label>
+        </div>
+        <label>12th percentage<input name="twelfthPercentage" type="number" min="0" max="100" step="0.01" value={form.twelfthPercentage} onChange={updateField} /></label>
         <label>Resume URL<input name="resumeUrl" type="url" placeholder="https://…" maxLength="2048" value={form.resumeUrl} onChange={updateField} /><small>Use a secure HTTPS link. File uploads are not supported here.</small></label>
         <div className="form-actions"><button className="button" disabled={busy}>{busy ? 'Saving…' : 'Save profile'}</button></div>
       </form>
