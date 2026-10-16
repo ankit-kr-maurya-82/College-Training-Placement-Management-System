@@ -12,6 +12,7 @@ import Applications from '../pages/student/Applications.jsx'
 import StudentProfile from '../pages/student/Profile.jsx'
 import StudentInterviews from '../pages/student/Interviews.jsx'
 import Recommendations from '../pages/student/Recommendations.jsx'
+import StudentAnnouncements from '../pages/student/Announcements.jsx'
 import AdminDashboard from '../pages/admin/Dashboard.jsx'
 import AdminCompanies from '../pages/admin/Companies.jsx'
 import AdminDrives from '../pages/admin/Drives.jsx'
@@ -19,6 +20,7 @@ import AdminApplications from '../pages/admin/Applications.jsx'
 import AdminStudents from '../pages/admin/Students.jsx'
 import AdminReports from '../pages/admin/Reports.jsx'
 import AdminStaff from '../pages/admin/Staff.jsx'
+import AdminAnnouncements from '../pages/admin/Announcements.jsx'
 import RecruiterDashboard from '../pages/recruiter/Dashboard.jsx'
 import RecruiterDrives from '../pages/recruiter/Drives.jsx'
 import RecruiterApplications from '../pages/recruiter/Applications.jsx'
@@ -47,6 +49,7 @@ export default function AppRoutes() {
                     <Route path="/applications" element={<Protected role="STUDENT"><Applications /></Protected>} />
                     <Route path="/interviews" element={<Protected role="STUDENT"><StudentInterviews /></Protected>} />
                     <Route path="/recommendations" element={<Protected role="STUDENT"><Recommendations /></Protected>} />
+                    <Route path="/announcements" element={<Protected role="STUDENT"><StudentAnnouncements /></Protected>} />
                     <Route path="/profile" element={<Protected role="STUDENT"><StudentProfile /></Protected>} />
                     <Route path="/admin" element={<Protected manager><AdminDashboard /></Protected>} />
                     <Route path="/admin/companies" element={<Protected manager><AdminCompanies /></Protected>} />
@@ -55,6 +58,7 @@ export default function AppRoutes() {
                     <Route path="/admin/students" element={<Protected manager><AdminStudents /></Protected>} />
                     <Route path="/admin/reports" element={<Protected manager><AdminReports /></Protected>} />
                     <Route path="/admin/staff" element={<Protected role="ADMIN"><AdminStaff /></Protected>} />
+                    <Route path="/admin/announcements" element={<Protected manager><AdminAnnouncements /></Protected>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </Shell> }

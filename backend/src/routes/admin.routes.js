@@ -11,6 +11,7 @@ import {
     getPlacementAnalytics,
     updateAdminStudentStatus,
 } from "../controllers/admin.controller.js";
+import { createAnnouncement, deleteAnnouncement, listManagedAnnouncements, publishAnnouncement } from "../controllers/announcement.controller.js";
 
 const router = express.Router();
 router.use(authenticateToken, authorizeRoles("ADMIN", "TPO"));
@@ -23,5 +24,9 @@ router.get("/analytics/drives", getDriveAnalytics);
 router.get("/students", getAdminStudents);
 router.get("/students/:id", getAdminStudentById);
 router.patch("/students/:id/status", updateAdminStudentStatus);
+router.get("/announcements", listManagedAnnouncements);
+router.post("/announcements", createAnnouncement);
+router.patch("/announcements/:id/publish", publishAnnouncement);
+router.delete("/announcements/:id", deleteAnnouncement);
 
 export default router;
