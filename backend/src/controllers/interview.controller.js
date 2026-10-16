@@ -4,6 +4,7 @@ import { sendInterviewEmail } from "../services/vacancy-email.service.js";
 
 const statuses = new Set(["SCHEDULED", "COMPLETED", "CANCELLED"]);
 const modes = new Set(["ONLINE", "OFFLINE", "PHONE"]);
+const schedulableApplicationStatuses = new Set(["Applied", "Under Review", "Shortlisted", "Interview Scheduled"]);
 const validId = (value) => typeof value === "string" && /^[a-f\d]{24}$/i.test(value);
 const identity = (req, type) => type === "COMPANY" ? req.user?.companyId : req.user?.studentId;
 
@@ -186,6 +187,7 @@ export async function createInterview(req, res) {
             .lean();
         if (!application?.drive || !application.student) return res.status(404).json({ message: "Application not found" });
         if (String(application.drive?.company?._id ?? application.drive?.company) !== companyId) return res.status(404).json({ message: "Application not found" });
+        if (!schedulableApplicationStatuses.has(application.status)) return res.status(409).json({ message: "This application is no longer eligible for interview scheduling" });
         const event = eventFor({ requestId: key, action: "SCHEDULED", changedBy: companyId, schedule: parsed.value, notificationStatus: "PENDING" });
         const interview = await Interview.create({
             application: application._id,

@@ -170,6 +170,16 @@ describe("interview scheduling", { concurrency: false }, () => {
         assert.equal(create.mock.callCount(), 0);
     });
 
+    it("does not schedule interviews for applications in terminal statuses", async (t) => {
+        t.mock.method(Interview, "findOne", () => query(null));
+        t.mock.method(Application, "findById", () => query(application({ status: "Withdrawn" })));
+        const create = t.mock.method(Interview, "create", async () => assert.fail("terminal applications must not be scheduled"));
+        const res = response();
+        await createInterview(request({ role: "COMPANY", companyId }, { body: { applicationId, ...validSchedule() } }), res);
+        assert.equal(res.statusCode, 409);
+        assert.equal(create.mock.callCount(), 0);
+    });
+
     it("returns an existing interview for a retried idempotency key without resending mail", async (t) => {
         const messages = mockMail(t);
         const existing = scheduledInterview();
