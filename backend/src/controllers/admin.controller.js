@@ -281,7 +281,7 @@ export async function updateAdminStudentStatus(req, res) {
     if (!validId(req.params.id)) return res.status(400).json({ message: "Invalid student ID" });
     if (!req.body || typeof req.body.isActive !== "boolean" || Object.keys(req.body).some((key) => key !== "isActive")) return res.status(400).json({ message: "Only a boolean isActive value may be updated" });
     try {
-        const student = await Student.findByIdAndUpdate(req.params.id, { $set: { isActive: req.body.isActive } }, { new: true, runValidators: true }).select(studentProjection).lean();
+        const student = await Student.findByIdAndUpdate(req.params.id, { $set: { isActive: req.body.isActive } }, { returnDocument: "after", runValidators: true }).select(studentProjection).lean();
         if (!student) return res.status(404).json({ message: "Student not found" });
         return res.status(200).json({ message: `Student account ${req.body.isActive ? "enabled" : "disabled"}`, student: publicStudent(student) });
     } catch (error) { return handleError(res, error, "updating student status"); }

@@ -99,7 +99,7 @@ const updateCompany = async (req, res) => {
     const { input, error } = validateCompanyInput(req.body ?? {}, { partial: true });
     if (error) return res.status(400).json({ message: error });
     try {
-        const company = await Company.findByIdAndUpdate(req.params.id, { $set: input }, { new: true, runValidators: true }).select("-hrPassword").lean();
+        const company = await Company.findByIdAndUpdate(req.params.id, { $set: input }, { returnDocument: "after", runValidators: true }).select("-hrPassword").lean();
         if (!company) return res.status(404).json({ message: "Company not found" });
         return res.status(200).json({ message: "Company updated successfully", company });
     } catch (err) {
@@ -348,7 +348,7 @@ export async function updateCompanyProfile(req, res) {
     }
     if (input.website && !validUrl.test(input.website)) return res.status(400).json({ message: "Website must be a valid URL" });
     try {
-        const company = await Company.findByIdAndUpdate(req.user.companyId, { $set: input }, { new: true, runValidators: true })
+        const company = await Company.findByIdAndUpdate(req.user.companyId, { $set: input }, { returnDocument: "after", runValidators: true })
             .select("name companyName description website location industry hrEmail hrName hrPhoneNumber hrContact logo isActive").lean();
         if (!company) return res.status(404).json({ message: "Company not found" });
         return res.status(200).json({ message: "Profile updated successfully", company });

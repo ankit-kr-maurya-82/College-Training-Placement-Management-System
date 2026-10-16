@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/auth.js'
 import { Busy, Notice } from '../../components/Feedback.jsx'
 import { GoogleSignInButton } from '../../components/GoogleSignInButton.jsx'
+import { Eye, EyeOff, LockKeyhole, ShieldCheck } from 'lucide-react'
 
 const accountTypes = [
   { id: 'STUDENT', label: 'Student' },
@@ -20,6 +21,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false)
   const [googleBusy, setGoogleBusy] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const processing = useRef(false)
 
   if (user) return <Navigate to={user.role === 'COMPANY' ? '/company' : ['ADMIN', 'TPO'].includes(user.role) ? '/admin' : '/'} replace />
@@ -66,7 +68,8 @@ export default function Login() {
     setError('Google sign-in was cancelled or could not be started. Try again.')
   }
 
-  return <section className="auth-card">
+  return <section className="auth-card auth-login">
+    <div className="auth-welcome"><span className="auth-welcome-icon"><ShieldCheck size={21}/></span><span>YOUR NEXT STEP STARTS HERE</span></div>
     <p className="eyebrow">WELCOME BACK</p>
     <h1>Log in to your account</h1>
     {searchParams.get('registered') === '1' && <Notice>Company registered. Sign in with your HR email and password.</Notice>}
@@ -83,7 +86,7 @@ export default function Login() {
     <form onSubmit={submit} className="form-stack">
       {accountType === 'COMPANY' && <label>Company name<input required autoComplete="organization" value={form.companyName} onChange={(e) => setForm({ ...form, companyName: e.target.value })}/></label>}
       <label>{accountType === 'COMPANY' ? 'HR email' : 'Email'}<input required type="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}/></label>
-      <label>Password<input required type="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}/></label>
+      <label>Password<div className="password-field"><LockKeyhole size={16}/><input required type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}/><button type="button" className="password-toggle" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff size={17}/> : <Eye size={17}/>}</button></div></label>
       <button className="button" disabled={busy}>{busy ? 'Signing in…' : `Log in as ${accountTypes.find((type) => type.id === accountType)?.label}`}</button>
     </form>
     {accountType !== 'MANAGER' && <p className="muted">New here? <Link to={`/register?role=${accountType}`}>Register {accountType === 'COMPANY' ? 'your company' : 'as a student'}</Link></p>}

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { Company } from "../src/models/company.model.js";
 import { Drive } from "../src/models/drive.model.js";
+import { DriveNotificationJob } from "../src/models/drive-notification-job.model.js";
 import { closeDrive, createDrive, deleteDrive, getDriveById, getDrives, getManageDrives, publishDrive, updateDrive } from "../src/controllers/drive.controller.js";
 import { authenticateToken } from "../src/middlewares/auth.middleware.js";
 import { authorizeRoles } from "../src/middlewares/role.middleware.js";
@@ -78,7 +79,7 @@ describe("drive management", { concurrency: false }, () => {
         const res = response();
         await getManageDrives({ query: { page: "1", limit: "1" } }, res);
         assert.equal(res.statusCode, 200);
-        assert.equal(filter, undefined);
+        assert.deepEqual(filter, {});
         assert.deepEqual(res.body.drives, rows);
         assert.deepEqual(res.body.pagination, { page: 1, limit: 1, total: 2, pages: 2 });
     });
@@ -116,11 +117,19 @@ describe("drive management", { concurrency: false }, () => {
     it("publishes only future draft drives and closes only published drives", async (t) => {
         let document = driveDocument();
         t.mock.method(Drive, "findById", async () => document);
+        t.mock.method(Drive, "findOneAndUpdate", async (filter) => { assert.equal(filter.status, "Draft"); document.status = "Published"; return document; });
+        const enqueue = t.mock.method(DriveNotificationJob, "updateOne", async () => ({ acknowledged: true }));
         t.mock.method(Company, "findOne", async () => ({ _id: id, isActive: true }));
         let res = response();
         await publishDrive({ params: { id } }, res);
         assert.equal(res.statusCode, 200);
         assert.equal(document.status, "Published");
+        assert.equal(res.body.notificationsQueued, true);
+        assert.equal(enqueue.mock.callCount(), 1);
+        res = response();
+        await publishDrive({ params: { id } }, res);
+        assert.equal(res.statusCode, 409);
+        assert.equal(enqueue.mock.callCount(), 1);
         res = response();
         await closeDrive({ params: { id } }, res);
         assert.equal(res.statusCode, 200);
@@ -133,13 +142,39 @@ describe("drive management", { concurrency: false }, () => {
     it("does not publish an expired draft", async (t) => {
         const document = driveDocument({ applicationDeadline: new Date("2000-01-01") });
         t.mock.method(Drive, "findById", async () => document);
+        t.mock.method(Drive, "findOneAndUpdate", async () => assert.fail("expired drive must not transition"));
         const res = response();
         await publishDrive({ params: { id } }, res);
         assert.equal(res.statusCode, 400);
         assert.equal(document.status, "Draft");
     });
 
+    it("prevents a company from publishing another company's drive", async (t) => {
+        t.mock.method(Drive, "findById", async () => driveDocument({ company: "507f1f77bcf86cd799439099" }));
+        const companyLookup = t.mock.method(Company, "findOne", async () => assert.fail("foreign drive must not be published"));
+        const enqueue = t.mock.method(DriveNotificationJob, "updateOne", async () => assert.fail("foreign drive must not be queued"));
+        const res = response();
+        await publishDrive({ params: { id }, user: { role: "COMPANY", companyId: id } }, res);
+        assert.equal(res.statusCode, 403);
+        assert.equal(companyLookup.mock.callCount(), 0);
+        assert.equal(enqueue.mock.callCount(), 0);
+    });
+
+    it("keeps a vacancy published when notification queue storage fails", async (t) => {
+        const document = driveDocument();
+        t.mock.method(Drive, "findById", async () => document);
+        t.mock.method(Drive, "findOneAndUpdate", async () => { document.status = "Published"; return document; });
+        t.mock.method(Company, "findOne", async () => ({ _id: id, isActive: true }));
+        t.mock.method(DriveNotificationJob, "updateOne", async () => { throw new Error("database unavailable"); });
+        const res = response();
+        await publishDrive({ params: { id } }, res);
+        assert.equal(res.statusCode, 200);
+        assert.equal(document.status, "Published");
+        assert.equal(res.body.notificationsQueued, false);
+    });
+
     it("deletes existing drives and reports missing drives", async (t) => {
+        t.mock.method(Drive, "findById", async () => null);
         t.mock.method(Drive, "findByIdAndDelete", async () => null);
         const res = response();
         await deleteDrive({ params: { id } }, res);
