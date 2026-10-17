@@ -82,6 +82,10 @@ export async function getDashboardOverview(req, res) {
                         { $match: { "companyRecord.isActive": true } },
                         { $count: "count" },
                     ],
+                    activePublished: [
+                        { $match: { status: "Published", applicationDeadline: { $gt: now } } },
+                        { $count: "count" },
+                    ],
                 } },
             ]),
             Application.aggregate([
@@ -92,23 +96,31 @@ export async function getDashboardOverview(req, res) {
         const appCounts = Object.fromEntries((appGroups ?? []).map(({ _id, applications, students }) => [_id, { applications, students: students.length }]));
         const totalApplications = Object.values(appCounts).reduce((sum, row) => sum + row.applications, 0);
         const selectedApplications = appCounts.Selected?.applications ?? 0;
+        const selectedStudents = appCounts.Selected?.students ?? 0;
+        const shortlistedStudents = appCounts.Shortlisted?.students ?? 0;
         return res.status(200).json({
             students: { total: totalStudents, active: activeStudents },
             companies: { total: totalCompanies },
             drives: {
                 total: totalDrives,
                 published: driveCounts.Published ?? 0,
+                activePublished: driveGroups[0]?.activePublished?.[0]?.count ?? 0,
                 closed: driveCounts.Closed ?? 0,
                 upcoming: driveGroups[0]?.upcoming?.[0]?.count ?? 0,
             },
             applications: {
                 total: totalApplications,
                 awaitingReview: appCounts.Applied?.applications ?? 0,
-                shortlistedStudents: appCounts.Shortlisted?.students ?? 0,
-                selectedStudents: appCounts.Selected?.students ?? 0,
+                shortlistedStudents,
+                selectedStudents,
                 rejected: appCounts.Rejected?.applications ?? 0,
                 applicationSelectionRate: totalApplications ? Number(((selectedApplications / totalApplications) * 100).toFixed(2)) : 0,
                 applicationSelectionRateDefinition: "Selected applications divided by all applications, as a percentage; this is not a graduating-class placement rate.",
+                placementPercentage: totalStudents ? Number(((selectedStudents / totalStudents) * 100).toFixed(2)) : 0,
+                placementPercentageNumerator: selectedStudents,
+                placementPercentageDenominator: totalStudents,
+                placementPercentageDefinition: "Unique students with at least one currently Selected application divided by all registered student records, as a percentage. This is an institution-wide snapshot, not a graduating-class rate.",
+                byStatus: applicationStatuses.map((status) => ({ status, count: appCounts[status]?.applications ?? 0 })),
             },
         });
     } catch (error) { return handleError(res, error, "retrieving dashboard overview"); }

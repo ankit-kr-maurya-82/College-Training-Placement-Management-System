@@ -28,7 +28,7 @@ describe("admin dashboard and analytics", { concurrency: false }, () => {
         t.mock.method(Company, "countDocuments", async () => 3);
         t.mock.method(Drive, "countDocuments", async () => 8);
         t.mock.method(Drive, "aggregate", async () => [{
-            byStatus: [{ _id: "Published", count: 3 }, { _id: "Closed", count: 2 }], upcoming: [{ count: 1 }],
+            byStatus: [{ _id: "Published", count: 3 }, { _id: "Closed", count: 2 }], upcoming: [{ count: 1 }], activePublished: [{ count: 2 }],
         }]);
         t.mock.method(Application, "aggregate", async () => [
             { _id: "Applied", applications: 4, students: ["a", "b", "c", "d"] },
@@ -41,11 +41,16 @@ describe("admin dashboard and analytics", { concurrency: false }, () => {
         assert.equal(res.statusCode, 200);
         assert.deepEqual(res.body.students, { total: 6, active: 5 });
         assert.deepEqual(res.body.companies, { total: 3 });
-        assert.deepEqual(res.body.drives, { total: 8, published: 3, closed: 2, upcoming: 1 });
+        assert.deepEqual(res.body.drives, { total: 8, published: 3, activePublished: 2, closed: 2, upcoming: 1 });
+        assert.equal(res.body.drives.activePublished, 2);
         assert.equal(res.body.applications.total, 8);
         assert.equal(res.body.applications.awaitingReview, 4);
         assert.equal(res.body.applications.shortlistedStudents, 2);
         assert.equal(res.body.applications.selectedStudents, 1);
+        assert.equal(res.body.applications.placementPercentage, 16.67);
+        assert.equal(res.body.applications.placementPercentageNumerator, 1);
+        assert.equal(res.body.applications.placementPercentageDenominator, 6);
+        assert.deepEqual(res.body.applications.byStatus.map(({ status }) => status), ["Applied", "Under Review", "Shortlisted", "Interview Scheduled", "Selected", "Rejected", "Withdrawn"]);
         assert.equal(res.body.applications.rejected, 1);
         assert.equal(res.body.applications.applicationSelectionRate, 12.5);
     });
@@ -60,6 +65,9 @@ describe("admin dashboard and analytics", { concurrency: false }, () => {
         await getDashboardOverview({}, res);
         assert.equal(res.statusCode, 200);
         assert.equal(res.body.applications.applicationSelectionRate, 0);
+        assert.equal(res.body.applications.placementPercentage, 0);
+        assert.equal(res.body.applications.placementPercentageNumerator, 0);
+        assert.equal(res.body.applications.placementPercentageDenominator, 0);
         assert.equal(res.body.drives.upcoming, 0);
         assert.equal(res.body.applications.total, 0);
     });
@@ -93,6 +101,7 @@ describe("admin dashboard and analytics", { concurrency: false }, () => {
         const placementsPipeline = Application.aggregate.mock.calls[0].arguments[0];
         assert.equal(placementsPipeline[0].$match.status, "Selected");
         assert.ok(placementsPipeline.some((stage) => stage.$lookup?.from === Drive.collection.name));
+        assert.ok(placementsPipeline.some((stage) => stage.$group?.selectedStudents?.$addToSet), "selected students are deduplicated before counting");
         res = response();
         await getCompanyAnalytics({ query: { company: id, startDate: "2026-01-01" } }, res);
         assert.equal(res.statusCode, 200);
@@ -101,6 +110,18 @@ describe("admin dashboard and analytics", { concurrency: false }, () => {
         const companyMatch = companiesPipeline.find((stage) => stage.$match?.["driveRecord.company"]);
         assert.ok(companyMatch.$match["driveRecord.company"].equals(id));
         assert.equal(companiesPipeline.at(-1).$limit, 20);
+    });
+
+    it("rejects invalid analytics date filters before querying", async (t) => {
+        t.mock.method(Application, "aggregate", async () => []);
+        let res = response();
+        await getApplicationAnalytics({ query: { startDate: "not-a-date" } }, res);
+        assert.equal(res.statusCode, 400);
+        assert.equal(Application.aggregate.mock.callCount(), 0);
+        res = response();
+        await getPlacementAnalytics({ query: { startDate: "2026-01-01", endDate: "2026-01-01T00:00:00Z", limit: "1000" } }, res);
+        assert.equal(res.statusCode, 400);
+        assert.equal(Application.aggregate.mock.callCount(), 0);
     });
 
     it("groups drives by status and validates filters", async (t) => {
