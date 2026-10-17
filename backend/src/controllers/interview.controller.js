@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { Application } from "../models/application.model.js";
 import { Interview } from "../models/interview.model.js";
 import { sendInterviewEmail } from "../services/vacancy-email.service.js";
@@ -166,6 +167,143 @@ async function listInterviews(req, res, type) {
     } catch (error) {
         console.error("Interview list retrieval failed", { errorName: error?.name || "Error" });
         return res.status(500).json({ message: "Interviews could not be loaded" });
+    }
+}
+
+const oversightNotificationStatuses = ["NOT_REQUIRED", "PENDING", "SENDING", "SENT", "FAILED"];
+
+function parseOversightDate(value, key) {
+    if (typeof value !== "string" || !value.trim()) return { error: `${key} must be a valid date` };
+    const input = value.trim();
+    let date;
+    let dateOnly = false;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+        date = new Date(`${input}T00:00:00.000Z`);
+        dateOnly = true;
+        if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== input) return { error: `${key} must be a valid date` };
+    } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?(?:Z|[+-]\d{2}:\d{2})$/i.test(input)) {
+        date = new Date(input);
+        if (!Number.isFinite(date.getTime())) return { error: `${key} must be a valid date` };
+    } else {
+        return { error: `${key} must be an ISO date or timezone-qualified date-time` };
+    }
+    return { date, dateOnly };
+}
+
+function oversightFilters(query) {
+    const statuses = ["SCHEDULED", "COMPLETED", "CANCELLED"];
+    if ((query.page !== undefined && typeof query.page !== "string") || (query.limit !== undefined && typeof query.limit !== "string")) {
+        return { error: "page and limit must be numeric values" };
+    }
+    const page = Number(query.page ?? 1);
+    const limit = Number(query.limit ?? 20);
+    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(limit) || limit < 1 || limit > 100) {
+        return { error: "page must be positive and limit must be between 1 and 100" };
+    }
+    if (query.status !== undefined && (typeof query.status !== "string" || !statuses.includes(query.status))) return { error: "Invalid interview status" };
+    if (query.company !== undefined && !validId(query.company)) return { error: "Invalid company ID" };
+
+    const bounds = {};
+    let start;
+    let end;
+    if (query.startDate !== undefined) {
+        const parsed = parseOversightDate(query.startDate, "startDate");
+        if (parsed.error) return parsed;
+        start = parsed.date;
+        bounds.$gte = start;
+    }
+    if (query.endDate !== undefined) {
+        const parsed = parseOversightDate(query.endDate, "endDate");
+        if (parsed.error) return parsed;
+        end = parsed.dateOnly ? new Date(parsed.date.getTime() + 24 * 60 * 60 * 1000 - 1) : parsed.date;
+        bounds.$lte = end;
+    }
+    if (start && end && start > end) return { error: "startDate must be before or equal to endDate" };
+    if (start && end && end - start > 5 * 366 * 24 * 60 * 60 * 1000) return { error: "Date range cannot exceed five years" };
+
+    const filter = {};
+    if (Object.keys(bounds).length) filter.startAt = bounds;
+    if (query.status !== undefined) filter.status = query.status;
+    if (query.company !== undefined) filter.company = new mongoose.Types.ObjectId(query.company);
+    return { page, limit, filter, dates: { ...(start ? { startDate: start } : {}), ...(end ? { endDate: end } : {}) } };
+}
+
+function publicOversightInterview(interview) {
+    const student = interview.student;
+    const company = interview.company;
+    const drive = interview.drive;
+    const application = interview.application;
+    return {
+        id: String(interview._id),
+        startAt: interview.startAt,
+        endAt: interview.endAt,
+        timeZone: interview.timeZone,
+        mode: interview.mode,
+        status: interview.status,
+        student: student ? {
+            name: student.name,
+            ...(student.rollNumber ? { rollNumber: student.rollNumber } : {}),
+            ...(student.department ? { department: student.department } : {}),
+            ...(student.course ? { course: student.course } : {}),
+        } : null,
+        company: company ? { name: company.name || company.companyName || "Company" } : null,
+        drive: drive ? { title: drive.title, ...(drive.location ? { location: drive.location } : {}) } : null,
+        application: application ? { status: application.status } : null,
+        events: (interview.events ?? []).map((event) => ({
+            action: event.action,
+            changedAt: event.changedAt,
+            ...(event.notificationStatus ? { notificationStatus: event.notificationStatus } : {}),
+        })),
+    };
+}
+
+export async function getInterviewOversight(req, res) {
+    const parsed = oversightFilters(req.query ?? {});
+    if (parsed.error) return res.status(400).json({ message: parsed.error });
+    const { page, limit, filter } = parsed;
+    try {
+        const [rows, total, summary] = await Promise.all([
+            Interview.find(filter)
+                .select("_id application student company drive startAt endAt timeZone mode status events.action events.changedAt events.notificationStatus")
+                .sort({ startAt: 1, _id: 1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .populate({ path: "student", select: "name rollNumber department course" })
+                .populate({ path: "company", select: "name companyName" })
+                .populate({ path: "drive", select: "title location" })
+                .populate({ path: "application", select: "status" })
+                .lean(),
+            Interview.countDocuments(filter),
+            Interview.aggregate([
+                { $match: filter },
+                { $facet: {
+                    byStatus: [{ $group: { _id: "$status", count: { $sum: 1 } } }],
+                    notificationEvents: [
+                        { $unwind: "$events" },
+                        { $match: { "events.notificationStatus": { $in: oversightNotificationStatuses } } },
+                        { $group: { _id: "$events.notificationStatus", count: { $sum: 1 } } },
+                    ],
+                } },
+            ]),
+        ]);
+        const counts = Object.fromEntries((summary[0]?.byStatus ?? []).map(({ _id, count }) => [_id, count]));
+        const notificationCounts = Object.fromEntries((summary[0]?.notificationEvents ?? []).map(({ _id, count }) => [_id, count]));
+        return res.status(200).json({
+            interviews: rows.map(publicOversightInterview),
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            filters: { ...parsed.dates, ...(filter.status ? { status: filter.status } : {}), ...(filter.company ? { company: String(filter.company) } : {}) },
+            summary: {
+                totalInterviews: total,
+                interviewsByStatus: ["SCHEDULED", "COMPLETED", "CANCELLED"].map((status) => ({ status, count: counts[status] ?? 0 })),
+                notificationEventsByStatus: oversightNotificationStatuses
+                    .filter((status) => notificationCounts[status] !== undefined)
+                    .map((status) => ({ status, count: notificationCounts[status] })),
+                notificationEventCount: Object.values(notificationCounts).reduce((sum, count) => sum + count, 0),
+            },
+        });
+    } catch (error) {
+        console.error("Interview oversight retrieval failed", { errorName: error?.name || "Error" });
+        return res.status(500).json({ message: "Interview oversight could not be loaded" });
     }
 }
 

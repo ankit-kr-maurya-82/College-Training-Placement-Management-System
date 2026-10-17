@@ -4,6 +4,7 @@ import { after, before, describe, it } from "node:test";
 import jwt from "jsonwebtoken";
 import { app } from "../src/app.js";
 import { Student } from "../src/models/student.model.js";
+import { Interview } from "../src/models/interview.model.js";
 
 const secret = "admin-route-test-secret";
 const studentId = "507f1f77bcf86cd799439011";
@@ -35,9 +36,16 @@ describe("Admin/TPO route authorization", { concurrency: false }, () => {
     it("rejects anonymous and student access to admin statistics", async () => {
         const anonymous = await fetch(`${baseUrl}/dashboard/overview`);
         assert.equal(anonymous.status, 401);
+        const anonymousInterviews = await fetch(`${baseUrl}/interviews`);
+        assert.equal(anonymousInterviews.status, 401);
         const studentToken = jwt.sign({ studentId }, secret);
         const student = await fetch(`${baseUrl}/dashboard/overview`, { headers: { Authorization: `Bearer ${studentToken}` } });
         assert.equal(student.status, 403);
+        const studentInterviews = await fetch(`${baseUrl}/interviews`, { headers: { Authorization: `Bearer ${studentToken}` } });
+        assert.equal(studentInterviews.status, 403);
+        const companyToken = jwt.sign({ role: "COMPANY", companyId: studentId }, secret);
+        const companyInterviews = await fetch(`${baseUrl}/interviews`, { headers: { Authorization: `Bearer ${companyToken}` } });
+        assert.equal(companyInterviews.status, 403);
     });
 
     it("mounts manager login and restricts TPO creation to Admin", async () => {
@@ -70,5 +78,22 @@ describe("Admin/TPO route authorization", { concurrency: false }, () => {
         assert.equal(response.status, 200);
         assert.deepEqual((await response.json()).students, []);
         assert.equal(find.mock.callCount(), 1);
+    });
+
+    it("allows ADMIN and TPO access to the mounted institution-wide interview report", async (t) => {
+        const chain = {
+            select: () => chain, sort: () => chain, skip: () => chain, limit: () => chain,
+            populate: () => chain, lean: async () => [],
+        };
+        const find = t.mock.method(Interview, "find", () => chain);
+        t.mock.method(Interview, "countDocuments", async () => 0);
+        t.mock.method(Interview, "aggregate", async () => [{ byStatus: [], notificationEvents: [] }]);
+        for (const role of ["ADMIN", "TPO"]) {
+            const token = jwt.sign({ role, userId: studentId }, secret);
+            const response = await fetch(`${baseUrl}/interviews`, { headers: { Authorization: `Bearer ${token}` } });
+            assert.equal(response.status, 200);
+            assert.deepEqual((await response.json()).interviews, []);
+        }
+        assert.equal(find.mock.callCount(), 2);
     });
 });

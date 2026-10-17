@@ -37,6 +37,7 @@ const interviewSchema = new mongoose.Schema({
 
 interviewSchema.index({ company: 1, startAt: 1 });
 interviewSchema.index({ student: 1, startAt: 1 });
+interviewSchema.index({ status: 1, startAt: 1 });
 interviewSchema.index({ "events.requestId": 1 }, { unique: true, sparse: true });
 interviewSchema.index({ application: 1 }, { unique: true, partialFilterExpression: { status: "SCHEDULED" } });
 
