@@ -682,6 +682,30 @@ footer span {
     font-size: 11px
 }
 
+.readiness-summary {
+    margin: 22px 0 42px;
+    padding: 24px 28px;
+    border: 1px solid #dfe8df;
+    border-radius: 14px;
+    background: linear-gradient(120deg, #f3f8f2, #fff);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+}
+
+.readiness-summary h2 { margin: 2px 0 8px; font-size: 22px; }
+.readiness-message { margin: 0 0 10px; color: #506158; }
+.readiness-skill-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.readiness-note { margin: 8px 0 0; color: #758078; font-size: 12px; }
+.readiness-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; flex: 0 0 auto; }
+.skill-analytics { grid-column: 1 / -1; }
+
+@media (max-width: 700px) {
+    .readiness-summary { align-items: flex-start; flex-direction: column; padding: 20px; }
+    .readiness-actions { flex-direction: row; flex-wrap: wrap; align-items: center; }
+}
+
 .application-list {
     display: grid;
     gap: 10px;

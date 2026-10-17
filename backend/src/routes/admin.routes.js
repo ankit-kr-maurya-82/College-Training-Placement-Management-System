@@ -13,6 +13,7 @@ import {
 } from "../controllers/admin.controller.js";
 import { createAnnouncement, deleteAnnouncement, listManagedAnnouncements, publishAnnouncement } from "../controllers/announcement.controller.js";
 import { getInterviewOversight } from "../controllers/interview.controller.js";
+import { getSkillReadinessAnalytics } from "../controllers/skill-readiness.controller.js";
 
 const router = express.Router();
 router.use(authenticateToken, authorizeRoles("ADMIN", "TPO"));
@@ -23,6 +24,7 @@ router.get("/analytics/placements", getPlacementAnalytics);
 router.get("/analytics/companies", getCompanyAnalytics);
 router.get("/analytics/drives", getDriveAnalytics);
 router.get("/interviews", getInterviewOversight);
+router.get("/analytics/skills", getSkillReadinessAnalytics);
 router.get("/students", getAdminStudents);
 router.get("/students/:id", getAdminStudentById);
 router.patch("/students/:id/status", updateAdminStudentStatus);

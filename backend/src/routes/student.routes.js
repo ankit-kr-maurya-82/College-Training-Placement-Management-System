@@ -13,6 +13,7 @@ import { receiveProfilePicture } from "../middlewares/profile-picture-upload.mid
 import { uploadStudentProfilePicture } from "../controllers/profile-picture.controller.js";
 import { listStudentInterviews } from "../controllers/interview.controller.js";
 import { listStudentAnnouncements } from "../controllers/announcement.controller.js";
+import { getMySkillReadiness } from "../controllers/skill-readiness.controller.js";
 
 const router = express.Router();
 
@@ -26,6 +27,7 @@ router.get("/me/profile", authenticateToken, requireActiveStudent, getMyStudentP
 router.put("/me/profile", authenticateToken, requireActiveStudent, updateMyStudentProfile);
 router.post("/me/profile-picture", authenticateToken, requireActiveStudent, receiveProfilePicture, uploadStudentProfilePicture);
 router.get("/me/interviews", authenticateToken, requireActiveStudent, listStudentInterviews);
+router.get("/me/readiness", authenticateToken, requireActiveStudent, getMySkillReadiness);
 router.get("/announcements", authenticateToken, requireActiveStudent, listStudentAnnouncements);
 router.get("/register", showStudents);
 router.get("/", showStudents);
