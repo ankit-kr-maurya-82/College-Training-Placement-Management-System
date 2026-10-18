@@ -279,7 +279,7 @@ footer span {
 
 .drive-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 16px
 }
 
@@ -296,7 +296,15 @@ footer span {
 .drive-card {
     min-height: 270px;
     display: flex;
-    flex-direction: column
+    min-width: 0;
+    flex-direction: column;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease
+}
+
+.drive-card:hover {
+    transform: translateY(-2px);
+    border-color: #d3e1d2;
+    box-shadow: 0 10px 24px #20352a0d
 }
 
 .card-top {
@@ -341,12 +349,18 @@ footer span {
     letter-spacing: -.4px
 }
 
-.drive-card h3 a {
+.drive-card h3 a:link,
+.drive-card h3 a:visited {
+    color: #243a2d;
     text-decoration: none
 }
 
-.drive-card h3 a:hover {
-    color: #477954
+.drive-card h3 a:hover,
+.drive-card h3 a:focus-visible {
+    color: #356b45;
+    text-decoration: underline;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 4px
 }
 
 .drive-card>.muted {
@@ -370,6 +384,19 @@ footer span {
     font-weight: 700;
     text-decoration: none;
     margin-top: 15px
+}
+
+.text-link:link,
+.text-link:visited {
+    color: #347247;
+    text-decoration: none
+}
+
+.text-link:hover,
+.text-link:focus-visible {
+    color: #234c34;
+    text-decoration: underline;
+    text-underline-offset: 3px
 }
 
 .text-link span {
