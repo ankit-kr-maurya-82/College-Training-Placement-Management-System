@@ -1488,6 +1488,130 @@ td {
     max-width: 760px
 }
 
+.student-profile {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #19241f
+}
+
+.student-profile > .dashboard-heading,
+.student-profile > .notice,
+.student-profile > .state,
+.student-profile > .profile-card {
+    width: min(100%, 760px);
+    margin-left: 0;
+    margin-right: auto
+}
+
+.student-profile > .dashboard-heading {
+    margin-bottom: 24px
+}
+
+.student-profile > .notice {
+    margin-top: 0;
+    margin-bottom: 14px
+}
+
+.student-profile > .profile-card {
+    padding: 26px;
+    border: 1px solid #dce5da;
+    border-radius: 12px;
+    background: #f4f7f2;
+    box-shadow: 0 10px 28px #20352a0d
+}
+
+.student-profile .profile-card > .muted {
+    margin: 0;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #edf0eb
+}
+
+.student-profile .profile-picture-upload {
+    margin: 20px 0 25px;
+    gap: 20px;
+    background: #fff;
+    border-color: #dce5da
+}
+
+.student-profile .profile-card > .form-stack {
+    gap: 18px
+}
+
+.student-profile .profile-card .form-stack label,
+.student-profile .profile-card .form-pair {
+    min-width: 0
+}
+
+.student-profile .form-pair {
+    display: grid;
+    column-gap: 24px;
+    row-gap: 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr)
+}
+
+.student-profile .profile-picture-controls {
+    flex: 1 1 0;
+    min-width: 0
+}
+
+.student-profile .profile-picture-controls > * {
+    max-width: 100%;
+    min-width: 0
+}
+
+.student-profile .form-pair label {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 7px
+}
+
+.student-profile .form-pair input {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0
+}
+
+.student-profile .form-pair small {
+    order: 1;
+    margin-top: 1px
+}
+
+.student-profile .form-actions {
+    margin-top: 2px;
+    padding-top: 18px;
+    border-top: 1px solid #edf0eb
+}
+
+@media (max-width: 600px) {
+    .student-profile {
+        padding-top: 30px
+    }
+
+    .student-profile > .dashboard-heading {
+        margin-bottom: 19px
+    }
+
+    .student-profile > .profile-card {
+        padding: 18px
+    }
+
+    .student-profile .profile-picture-upload {
+        flex-direction: column;
+        align-items: flex-start;
+        margin: 17px 0 21px
+    }
+
+    .student-profile .profile-picture-controls {
+        width: 100%;
+        flex-basis: auto
+    }
+
+    .student-profile .form-pair {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px
+    }
+}
+
 .form-actions {
     display: flex;
     justify-content: flex-end;

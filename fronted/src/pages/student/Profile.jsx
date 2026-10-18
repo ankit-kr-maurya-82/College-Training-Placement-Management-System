@@ -56,7 +56,7 @@ export default function StudentProfile() {
     }
   }
 
-  return <section className="admin">
+  return <section className="admin student-profile">
     <div className="dashboard-heading"><div><p className="eyebrow">STUDENT PORTAL</p><h1>My profile</h1><p className="muted">Keep your academic and contact details up to date.</p></div></div>
     {error && <div className="notice error" role="alert">{error}</div>}
     {notice && <div className="notice" role="status">{notice}</div>}
@@ -75,7 +75,7 @@ export default function StudentProfile() {
         </div>
         <div className="form-pair">
           <label>CGPA<input name="cgpa" type="number" min="0" max="10" step="0.01" value={form.cgpa} onChange={updateField} /></label>
-          <label>Skills <small>Separate skills with commas.</small><input name="skills" maxLength="1600" value={form.skills} onChange={updateField} /></label>
+          <label>Skills<input name="skills" maxLength="1600" value={form.skills} onChange={updateField} /><small>Separate skills with commas.</small></label>
         </div>
         <div className="form-pair">
           <label>Active backlogs<input name="activeBacklogs" type="number" min="0" step="1" value={form.activeBacklogs} onChange={updateField} /></label>
