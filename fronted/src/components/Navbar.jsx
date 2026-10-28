@@ -18,7 +18,7 @@ export default function Navbar() {
   </header>
 
   return <header className="topbar">
-    <Link className="brand" to="/"><span className="brand-monogram">C</span><span className="brand-name">Campus<span>Connect</span></span></Link>
+    <Link className="brand" to="/"><span className="brand-monogram">CT</span><span className="brand-name"><b>CTPM</b><small>Training &amp; Placement</small></span></Link>
     <nav aria-label="Main navigation">
       <NavLink to="/drives" className={({ isActive }) => isActive ? 'active' : ''}>Explore roles</NavLink>
       <NavLink to="/companies" className={({ isActive }) => isActive ? 'active' : ''}>Companies</NavLink>

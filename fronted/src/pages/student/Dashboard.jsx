@@ -94,6 +94,31 @@ export default function Drives({ showHero = true }) {
       {error && <Notice error={error}/>}
       {busy ? <Busy/> : drives.length ? <><div className="drive-grid">{drives.map((drive) => <DriveCard key={drive._id} drive={drive}/>)}</div><Pagination pagination={data.pagination} onPage={(page) => updateFilter('page', String(page))}/></> : <Empty>No open roles match those filters. Try clearing a filter.</Empty>}
     </section>
+
+    {showHero && <>
+      <section className="section employer-showcase" aria-labelledby="employer-heading">
+        <div className="section-heading"><div><p className="eyebrow">EMPLOYER DIRECTORY</p><h2 id="employer-heading">Companies on the portal</h2><p className="muted">Browse employer profiles and see their current opportunities.</p></div><Link className="text-link" to="/companies">View all companies <ArrowRight size={15}/></Link></div>
+        {companies.length ? <div className="employer-preview-grid">{companies.slice(0, 6).map((company) => <Link className="employer-preview" to={`/companies/${company._id}`} key={company._id}>
+          <span className="company-mark" aria-hidden="true">{companyName(company).slice(0, 1).toUpperCase()}</span>
+          <span className="employer-preview-copy"><b>{companyName(company)}</b><small>{[company.industry, company.location].filter(Boolean).join(' · ') || 'Employer profile'}</small></span>
+          <ArrowUpRight size={16}/>
+        </Link>)}</div> : <p className="muted">Employer profiles will appear here when they are added to the directory.</p>}
+      </section>
+
+      <section className="placement-process" aria-labelledby="process-heading">
+        <div className="process-intro"><p className="eyebrow">HOW PLACEMENT WORKS</p><h2 id="process-heading">From profile to application</h2><p>Use the portal to find current drives and follow your application progress.</p><Link className="text-link" to="/register?role=STUDENT">Create a student account <ArrowRight size={15}/></Link></div>
+        <ol className="process-steps">
+          <li><span>01</span><div><b>Complete your profile</b><p>Add your course, academic details, skills, and resume link.</p></div></li>
+          <li><span>02</span><div><b>Review open drives</b><p>Check each role’s details and application deadline before applying.</p></div></li>
+          <li><span>03</span><div><b>Track your progress</b><p>Review application updates, interview schedules, and placement office announcements.</p></div></li>
+        </ol>
+      </section>
+
+      <section className="recruiter-promo">
+        <div><p className="eyebrow">FOR EMPLOYERS</p><h2>Recruit through the placement cell</h2><p>Create a company account to publish drives, manage applications, and coordinate interviews.</p></div>
+        <Link className="button" to="/register?role=COMPANY">Register your company <ArrowUpRight size={16}/></Link>
+      </section>
+    </>}
   </>
 }
 

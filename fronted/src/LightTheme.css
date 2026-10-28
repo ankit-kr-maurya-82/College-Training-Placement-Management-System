@@ -1,0 +1,262 @@
+:root {
+  color-scheme: light;
+  --page: #E8EDF0;
+  --surface: #FFFFFF;
+  --surface-soft: #E7ECEF;
+  --surface-blue: #D9E8F1;
+  --surface-mint: #D5E9E3;
+  --line: #C4D0D7;
+  --line-strong: #AEBCC5;
+  --ink: #1D2B36;
+  --heading: #1D3557;
+  --muted: #526674;
+  --brand: #0F625F;
+  --brand-hover: #0B4F4D;
+  --success: #286744;
+  --warning: #805718;
+  --error: #963B32;
+}
+
+html, body, .app-shell { min-height: 100%; background: var(--page); color: var(--ink); }
+body { background: var(--page); color: var(--ink); }
+main { background: transparent; }
+a, .text-link, .text-link:link, .text-link:visited, .back-link, .table-wrap a { color: var(--brand); }
+.muted, .company-label, .card-meta, .drive-deadline, .drive-card-location,
+.scheduler-heading .muted, .interview-table-toolbar p { color: var(--muted); }
+.eyebrow { color: var(--brand); }
+
+/* Navigation */
+.topbar, .auth-topbar { border-color: var(--line); background: #fff; color: var(--ink); backdrop-filter: none; }
+.brand, .brand:visited, .brand:active, .brand-name, .brand-name b { color: var(--heading); }
+.brand-name small { color: var(--muted); }
+.brand-monogram, .footer-brand-mark { border-color: #B8D9D5; background: var(--surface-mint); color: var(--brand) !important; }
+.topbar nav > a, .topbar-menu > summary, .account > a:not(.button) { color: #52616D; }
+.topbar nav > a:hover, .topbar nav > a.active, .topbar-menu > summary:hover,
+.topbar-menu.active > summary, .topbar-menu[open] > summary { background: #C8E0D8; color: var(--brand-hover); }
+.topbar-menu-list { border-color: var(--line); background: #fff; box-shadow: 0 12px 28px #1D35571a; }
+.topbar-menu-list a, .topbar-menu-list a:visited { color: #42515C; }
+.topbar-menu-list a:hover, .topbar-menu-list a.active { background: var(--surface-soft); color: var(--brand-hover); }
+.account-name { color: var(--muted); }
+
+/* Actions and links */
+.button, .auth-card .button, .welcome-strip .button { border-color: var(--brand); background: var(--brand); color: #fff !important; }
+.button:hover, .welcome-strip .button:hover { border-color: var(--brand-hover); background: var(--brand-hover); color: #fff !important; }
+.button.ghost { border-color: var(--line-strong); background: #fff; color: #344A58 !important; }
+.button.ghost:hover { background: var(--surface-soft); }
+.text-link:hover, .text-link:focus-visible, .back-link:hover { color: var(--brand-hover); }
+.button:focus-visible, .text-link:focus-visible, .footer-brand:focus-visible,
+.footer-links a:focus-visible, .footer-office a:focus-visible { outline: 2px solid #177C78; outline-offset: 3px; }
+
+/* Public placement overview */
+.hero, .hero.hero-studio { border-color: #B7C8D2; background: var(--surface-blue); }
+.hero h1, .hero-feature h2, .hero-feature-link h2, .hero-feature-link,
+.hero-feature-link:visited { color: var(--heading); }
+.hero h1 em, .hero-number, .hero-fact b { color: var(--brand); }
+.hero .eyebrow, .hero .hero-kicker, .hero-secondary-link,
+.hero-secondary-link:visited { color: #315A70; }
+.hero .hero-kicker > span, .hero-live i { background: #2A9D72; }
+.hero-facts, .hero-feature-cta { border-color: var(--line); }
+.hero-feature { border-color: var(--line); background: #fff; box-shadow: 0 10px 26px #1D355710; }
+.hero-feature-top, .hero-feature-company, .hero-feature-empty { color: var(--muted); }
+.hero-feature-top .hero-live { border-color: #9BCBAF; background: #D5EBDD; color: var(--success); }
+.hero-feature-cta { background: var(--surface-soft); color: var(--brand); }
+.hero-floating-note { border-color: var(--line); background: #fff; color: var(--ink); box-shadow: 0 8px 24px #1D355710; }
+.hero-floating-note > span { background: var(--surface-mint); color: var(--brand); }
+
+/* Shared cards, forms, and states */
+.panel, .drive-card, .company-card, .stat-card, .application-card,
+.application-summary-card, .recommendation-card, .interview-card,
+.interview-schedule-panel, .interview-history-panel, .interview-delivery-summary,
+.company-details-card, .apply-panel, .roles-filters, .filters,
+.roles-section .drive-card, .readiness-summary, .interview-booking-picker,
+.interview-oversight, .interview-calendar-panel, .interview-time-panel,
+.interview-table-panel, .table-wrap, .modal, .auth-card,
+.employer-preview, .placement-process {
+  border-color: var(--line);
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 4px 14px #1D35570A;
+}
+.drive-card:hover, .company-card:hover, .roles-section .drive-card:hover,
+.employer-preview:hover { border-color: #9FB9C6; background: #fff; box-shadow: 0 8px 20px #1D355710; }
+.section-heading h1, .section-heading h2, .section > h1, .section > h2,
+.detail-main h1, .dashboard-heading h1, .applications-page > h1,
+.student-interviews-page > h1, .drive-card h3, .company-card h3,
+.application-card-heading h2, .interview-card-heading h2,
+.interview-card-heading h3, .recommendation-card-heading h2,
+.modal-heading h2, .interview-table-toolbar h3 { color: var(--heading); }
+.drive-card h3 a:link, .drive-card h3 a:visited,
+.company-card h3 a:link, .company-card h3 a:visited { color: var(--heading); }
+.company-mark { border-color: #B7C8D2; background: var(--surface-blue); color: #315A70; }
+.employer-preview:nth-child(3n + 1) .company-mark { border-color: #AACDC2; background: #D5E9E3; color: #246A5C; }
+.employer-preview:nth-child(3n + 2) .company-mark { border-color: #BFC8E1; background: #DFE3F1; color: #4E5F91; }
+.employer-preview:nth-child(3n) .company-mark { border-color: #DEC394; background: #F2E3CC; color: #704912; }
+.tag { border-color: #B7C8D2; background: #DFE9ED; color: #315A70; }
+.roles-count { border-color: #B7C8D2; background: #D9E8F1; color: var(--heading); }
+.roles-filters { background: #E1E8EC; }
+
+input, select, textarea, .filters input, .filters select,
+.form-stack input, .form-stack select, .form-stack textarea,
+.roles-filters .filters input, .roles-filters .filters select,
+.interview-table-footer select, .auth-card .form-stack input,
+.auth-card .form-stack select, .auth-card .form-stack textarea {
+  border-color: var(--line-strong);
+  background: #fff;
+  color: var(--ink);
+}
+input::placeholder, textarea::placeholder { color: #82929D; }
+input:focus, select:focus, textarea:focus { border-color: #0F7772; outline-color: #0F777230; }
+.form-stack label, .recommendation-filters label, .interview-filters label,
+.interview-form-details label { color: #344A58; }
+.notice { border-color: #9BCBAF; background: #D5EBDD; color: var(--success); }
+.notice.error { border-color: #D9A5A0; background: #F3D8D5; color: #7C2C25; }
+.state { border-color: var(--line); background: #fff; color: var(--muted); }
+
+/* Student and employer areas */
+.welcome-strip { border-color: #AACDC2; background: var(--surface-mint); color: var(--ink); }
+.welcome-strip h2, .welcome-strip p:not(.eyebrow) { color: var(--heading); }
+.readiness-summary { border-color: var(--line); background: #fff; }
+.readiness-summary h2, .process-intro h2, .process-steps b { color: var(--heading); }
+.readiness-summary .tag { border-color: #AACDC2; background: var(--surface-mint); color: #246A5C; }
+.placement-process { border-color: var(--line); background: #E1E8EC; }
+.process-steps li { border-color: #E5EAED; }
+.process-steps li > span { color: var(--brand); }
+.recruiter-promo { border-color: #1D3557; border-left-color: #177C78; background: #1D3557; }
+.recruiter-promo h2 { color: #fff; }
+.recruiter-promo .eyebrow { color: #9FD8D0; }
+.recruiter-promo p:not(.eyebrow) { color: #D8E3EB; }
+.recruiter-promo .button { border-color: #9FD8D0; background: #9FD8D0; color: #16324F !important; }
+.recruiter-promo .button:hover { border-color: #BCE7E1; background: #BCE7E1; }
+.company-welcome { border-color: #AACDC2; background: var(--surface-mint); color: var(--ink); }
+.company-welcome p, .company-welcome .eyebrow { color: #315A70; }
+.analytics-row { border-color: var(--line); color: #52616D; }
+.analytics-row b, .stat-card b, .application-summary-card strong { color: var(--brand); }
+
+/* Admin tables and interview workflow */
+.admin-tabs { border-color: var(--line); }
+.admin-tabs button, .recruiter-tabs a { color: #52616D; }
+.admin-tabs button.active, .recruiter-tabs a.active { background: var(--surface-mint); color: var(--brand-hover); }
+.table-wrap th, .interview-table-wrap th, th { background: var(--surface-soft); color: #344A58; }
+table, .table-wrap, .interview-table-wrap { color: #344A58; }
+td, .interview-table-wrap td { border-color: #E3E9EC; background: #fff; color: #42515C; }
+.table-wrap tbody tr:hover, .interview-table-wrap tbody tr:hover { background: #F6F9FA; }
+.pager button, .admin-tabs button, .table-actions button, .table-wrap td button,
+.interview-table-footer .pager button { border-color: var(--line-strong); background: #fff; color: #344A58; }
+.pager button:hover, .admin-tabs button:hover, .table-actions button:hover,
+.table-wrap td button:hover { background: var(--surface-blue); }
+.modal-backdrop { background: #10243880; }
+.scheduler-icon, .interview-calendar-icon { background: var(--surface-blue); color: #315A70; }
+.interview-calendar-panel, .interview-time-panel { border-color: var(--line); background: #fff; }
+.interview-calendar-grid > button, .interview-calendar-heading button { color: #42515C; }
+.interview-calendar-grid > button.selected, .interview-time-options button.selected { border-color: var(--brand); background: var(--brand); color: #fff; }
+.interview-time-options button { border-color: var(--line-strong); background: #fff; color: #344A58; }
+.interview-time-options button:hover:not(:disabled), .interview-calendar-grid > button:hover:not(:disabled) { background: var(--surface-blue); }
+.interview-calendar-grid > button.today { outline-color: #177C78; }
+.interview-slot-confirmation, .interview-submit { border-color: var(--brand); background: var(--brand); color: #fff; }
+.interview-submit:hover { background: var(--brand-hover); }
+.interview-no-slots { color: var(--warning); }
+.interview-status-completed, .notification-status .status-count.sent,
+.recommendation-eligibility { border-color: #9BCBAF; background: #D5EBDD; color: var(--success); }
+.interview-status, .notification-status .status-count.pending,
+.recommendation-incomplete, .recommendation-not_eligible { border-color: #DEC394; background: #F2E3CC; color: #704912; }
+.interview-status-cancelled, .notification-status .status-count.failed { border-color: #D9A5A0; background: #F3D8D5; color: #7C2C25; }
+.recommendation-score { border-color: #CDE0E5; background: #EEF5F7; color: #315A70; }
+.recommendation-requirements li { border-color: #AACDC2; background: #D5E9E3; color: #246A5C; }
+.recommendation-requirements:nth-child(2) li { border-color: #DEC394; background: #F2E3CC; color: #704912; }
+
+/* Sign in and site footer */
+.auth-card { border-color: var(--line); background: #fff; box-shadow: 0 12px 30px #1D355712; }
+.auth-card h1 { color: var(--heading); }
+.auth-card .auth-welcome-icon { border-color: #C5DED8; background: var(--surface-mint); color: var(--brand); }
+.auth-card .auth-switch { background: var(--surface-soft); }
+.auth-card .auth-switch button { color: var(--muted); }
+.auth-card .auth-switch button.active { background: #fff; color: var(--heading); }
+.auth-card a, .auth-card a:visited { color: var(--brand); }
+.auth-card .password-field { border-color: var(--line-strong); background: #fff; color: #758792; }
+.auth-card .password-field:focus-within { border-color: #0F7772; box-shadow: 0 0 0 3px #0F77721a; }
+.auth-card .password-field input { background: transparent !important; color: var(--ink) !important; }
+.auth-card .password-toggle { color: #61717D; }
+.auth-card .auth-divider::before, .auth-card .auth-divider::after { background: var(--line); }
+.auth-top-actions { border-color: var(--line); background: #fff; }
+.auth-top-actions::before { background: var(--brand); }
+.auth-back-home { border-color: var(--line); background: #fff; color: #42515C; }
+
+.site-footer { border-color: var(--heading); background: var(--heading); color: #D8E3EB; }
+.footer-brand, .footer-brand:visited, .footer-links h2, .footer-office h2 { color: #fff; }
+.footer-brand-mark { border-color: #9FD8D0; background: #9FD8D0; color: #16324F !important; }
+.footer-brand small, .site-footer-about > p, .footer-office > p { color: #D8E3EB; }
+.footer-links a, .footer-links a:visited, .footer-office a, .footer-office a:visited { color: #BCE7E1; }
+.footer-links a:hover, .footer-office a:hover { color: #fff; }
+.site-footer-bottom { border-color: #49647D; color: var(--line-strong); }
+.site-footer-bottom span:first-child { color: var(--line-strong); }
+
+/* Give the landing hero stronger separation from the light dashboard surfaces. */
+.hero, .hero.hero-studio { border-color: #27496A; background: #1D3557; }
+.hero h1 { color: #fff; }
+.hero h1 em { color: #83D3C7; }
+.hero .hero-kicker, .hero .eyebrow { color: #B9D4E5; }
+.hero > div:first-child > p:not(.eyebrow), .hero-studio .hero-description { color: #D3DFE8; }
+.hero .hero-kicker > span, .hero-live i { background: #53C5AC; }
+.hero-facts { border-color: #49647D; }
+.hero-fact > span { color: #D3DFE8; }
+.hero-fact b, .hero-number { color: #9BE1D6; }
+.hero-secondary-link, .hero-secondary-link:visited { color: #C1E4DE; }
+.hero-feature { border-color: #D9E2E7; background: #fff; }
+.hero-feature h2, .hero-feature-link h2, .hero-feature-link,
+.hero-feature-link:visited { color: var(--heading); }
+.hero-feature-top, .hero-feature-company, .hero-feature-empty { color: var(--muted); }
+.hero-feature-cta {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding: 12px 0 2px;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--brand);
+  line-height: 1.4;
+}
+.hero-feature-link { margin-top: 18px; }
+.hero-feature-link > p { color: var(--muted); }
+.hero-feature-link > p svg { color: var(--brand); }
+.hero-feature-link:hover .hero-feature-cta { color: var(--brand-hover); }
+.hero-feature-link:focus-visible { border-radius: 4px; outline: 2px solid #177C78; outline-offset: 4px; }
+.hero-floating-note { border-color: #D9E2E7; background: #fff; color: var(--heading); }
+
+/* Employer directory cards need their own contrast because they contain nested text spans. */
+.employer-preview, .employer-preview:visited { border-color: #C4D0D7; background: #fff; color: var(--ink); }
+.employer-preview-copy b { color: var(--heading); }
+.employer-preview-copy small { color: var(--muted); }
+.employer-preview > svg { color: #70818C; }
+.employer-preview:hover { border-color: #5D9D98; background: #EAF5F1; color: var(--heading); }
+.employer-preview:hover .employer-preview-copy b { color: #145E5B; }
+.employer-preview:hover .employer-preview-copy small,
+.employer-preview:hover > svg { color: #526674; }
+.employer-preview:focus-visible { outline: 2px solid #177C78; outline-offset: 3px; }
+
+/* Keep the page canvas white and make the drive filters a clearly bounded workspace. */
+:root { --page: #FFFFFF; }
+html, body, .app-shell { background: #fff; }
+.roles-filters { border-color: #C4D0D7; background: #E7ECEF; box-shadow: 0 3px 12px #1D35570A; }
+.roles-filters .filters { border-color: transparent; background: transparent; box-shadow: none; }
+.roles-filter-heading b { color: #1D3557; }
+.roles-filter-heading span { color: #526674; }
+.roles-count { border-color: #B7C8D2; background: #D9E8F1; color: #1D3557; }
+.roles-count small { color: #526674; }
+.readiness-summary .readiness-message { color: #425563; }
+.readiness-summary .readiness-note { color: #61717D; }
+.readiness-summary .readiness-skill-list .tag { border-color: #AACDC2; background: #D5E9E3; color: #20594F; }
+.drive-card .drive-package { color: #344A58; }
+
+/* Drive details inherited pale text colors from the dark theme; restore contrast on white. */
+.detail-main h1, .detail-block h2, .apply-panel h2 { color: #1D3557; }
+.detail-main .lead, .detail-main .long-copy, .detail-main .facts li,
+.detail-main .facts b, .detail-main .detail-block p { color: #425563; }
+.detail-main .detail-block { border-color: #C4D0D7; }
+.apply-panel { border-color: #C4D0D7; background: #fff; color: #1D2B36; }
+.apply-panel .side-fact { border-color: #D9E2E7; background: transparent; }
+.apply-panel .side-fact span { color: #526674; }
+.apply-panel .side-fact b { color: #1D3557; }
