@@ -1,0 +1,255 @@
+:root {
+  color: #e4ebe5;
+  background: #111813;
+  color-scheme: dark;
+}
+
+body { color: #e4ebe5; background: #111813; }
+a { color: inherit; }
+
+.topbar { background: #18211b; border-color: #2c3a30; }
+.brand, .brand:visited, .brand:active { color: #e7eee8; }
+.brand span { color: #8fb996; }
+.topbar nav a, .account > a:not(.button) { color: #b0bdb2; }
+.topbar nav a:hover, .account a:hover { color: #b1d1b4; }
+.account > span { color: #b0bdb2; }
+.topbar nav a.active { color: #c0ddc2; }
+
+footer { color: #9aa89c; background: #161f19; border-color: #2a382e; }
+footer span { color: #87ad8d; }
+
+.hero { background: linear-gradient(135deg, #1a3021, #233f2b); }
+.hero h1 { color: #eff4ef; }
+.hero h1 em { color: #b4d1b6; }
+.hero > div:first-child > p:not(.eyebrow) { color: #c2d0c4; }
+.hero .eyebrow { color: #afceb1; }
+.orbit { border-color: #63816a; }
+.hero-art:before { background: linear-gradient(140deg, #527e59, #315d3b); box-shadow: 28px 32px 0 #324a36; }
+.hero-note { color: #eef4ee; }
+.hero-number { color: #b2d0b5; }
+
+.section-heading h1, .section-heading h2, .section > h1,
+.detail-main h1, .dashboard-heading h1, .applications-page > h1,
+.student-interviews-page > h1 { color: #e5ece6; }
+.muted { color: #9ba99e; }
+.eyebrow { color: #9fc5a3; }
+
+.drive-card, .company-card, .panel, .stat-card,
+.application-card, .application-summary-card, .recommendation-card,
+.interview-card, .interview-schedule-panel, .interview-history-panel,
+.admin-columns > .form-stack, .profile-card, .interview-delivery-summary {
+  background: #1b251e;
+  border-color: #334137;
+  color: #dce5dd;
+  box-shadow: 0 8px 22px #00000018;
+}
+.drive-card:hover { border-color: #536f58; box-shadow: 0 12px 28px #0000002c; }
+.drive-card h3, .company-card h3, .panel h3,
+.detail-block h2, .apply-panel h2, .dashboard-heading h1,
+.application-card-heading h2, .interview-card-heading h2,
+.interview-card-heading h3, .recommendation-card-heading h2 { color: #e4ece5; }
+.drive-card h3 a:link, .drive-card h3 a:visited { color: #e4ece5; }
+.drive-card h3 a:hover, .drive-card h3 a:focus-visible { color: #b8d8bb; }
+.company-label { color: #a6b4a8; }
+.company-mark { background: #2b4030; color: #a7cca9; }
+.tag { background: #293b2d; color: #b2d1b4; }
+.text-link, .text-link:link, .text-link:visited { color: #a9d0ad; }
+.text-link:hover, .text-link:focus-visible { color: #d0e7d2; }
+.card-meta { color: #a7b4a9; border-color: #334137; }
+.company-card p:not(.muted) { color: #aab8ac; }
+
+.filters input, .filters select, .search-wide,
+.form-stack input, .form-stack select, .form-stack textarea,
+.table-wrap select, .filters-panel input, .filters-panel select,
+.interview-list-toolbar select, .applications-toolbar input,
+.applications-toolbar select, .recommendation-filters input,
+.recommendation-filters select, .interview-filters input,
+.interview-filters select, .interview-time-panel input,
+.interview-time-panel select, .interview-form-details input,
+.interview-form-details select, .interview-form-details textarea {
+  background: #131b16;
+  border-color: #3a4a3e;
+  color: #e3ebe4;
+}
+input::placeholder, textarea::placeholder { color: #819087; opacity: 1; }
+input:focus, select:focus, textarea:focus { border-color: #82ae87; }
+input, select, textarea { background-color: #131b16; border-color: #3a4a3e; color: #e3ebe4; }
+.form-stack label, .interview-form-details label,
+.recommendation-filters label, .interview-filters label { color: #c0ccc2; }
+.form-stack small, .form-stack small, .form-stack label small { color: #92a096; }
+
+.button { background: #527e59; color: #f4f8f4 !important; }
+.button:hover { background: #64916b; }
+.button.ghost { background: transparent; color: #c7d5c9 !important; border-color: #45574a; }
+.button.ghost:hover { background: #26352a; }
+.button:disabled { background: #405846; }
+
+.notice { background: #23392a; color: #c4dfc7; }
+.notice.error { background: #3b2523; color: #f0b7ae; }
+.state { color: #a9b6ab; background: #1b251e; border-color: #3b4b3e; }
+.state a { color: #b7d7bb; }
+
+.auth-card { background: #1b251e; border-color: #344338; box-shadow: 0 10px 28px #00000024; }
+.auth-card h1 { color: #eaf0eb; }
+.auth-card .auth-welcome-icon { background: #2a3d2e; color: #b2d5b5; }
+.auth-card .form-stack input, .auth-card .form-stack select, .auth-card .form-stack textarea { background: #131b16; border-color: #3a4a3e; color: #e3ebe4; }
+.auth-card .auth-switch { background: #131b16; }
+.auth-card .auth-switch button { color: #afbbb1; }
+.auth-card .auth-switch button.active { color: #c4dfc7; background: #2a3d2e; box-shadow: 0 1px 4px #00000038; }
+.auth-card > .muted:last-child, .auth-card > form + .muted { border-color: #344338; }
+.auth-card a, .auth-card a:visited { color: #b0d5b4; }
+.auth-card .button { color: #f4f8f4 !important; }
+.auth-top-actions { background: #1b251e; border-color: #3a4a3e; }
+.auth-top-actions::before { background: #527e59; }
+.auth-top-actions a { color: #bfcbc1; }
+.auth-top-actions a.current { color: #fff; }
+.auth-top-actions a:not(.current):hover { color: #b8d8bb; }
+.auth-back-home { background: #1b251e; border-color: #3a4a3e; color: #c2d0c4; }
+.auth-back-home:hover { color: #d4e8d6; border-color: #63816a; }
+.auth-divider { color: #9eaca1; }
+.auth-divider::before, .auth-divider::after { background: #39473d; }
+.password-field { border-color: #3a4a3e; background: #131b16; }
+.password-field:focus-within { border-color: #82ae87; }
+.password-field input { background: transparent !important; }
+.password-toggle { color: #a7b4a9; }
+.google-sign-in-setup { background: #302b1c; border-color: #655633; color: #e0cf9e; }
+
+.auth-card .notice, .student-profile .notice { color: #c4dfc7; }
+.auth-card .notice.error, .student-profile .notice.error { color: #f0b7ae; }
+.profile-picture-upload, .student-profile .profile-picture-upload { background: #17211a; border-color: #344338; }
+.profile-picture-preview { background: #293b2d; border-color: #435849; color: #a8cbaa; }
+.profile-picture-controls .muted { color: #9ca99e; }
+.student-profile > .profile-card { background: #1b251e; border-color: #334137; }
+
+.welcome-strip { background: #1d3926; }
+.welcome-strip .eyebrow { color: #b1d4b4; }
+.welcome-strip p:not(.eyebrow), .welcome-stat span { color: #c0d1c2; }
+.welcome-strip .button { background: #d8e8d8; color: #294b31 !important; }
+.readiness-summary { background: linear-gradient(120deg, #1d2b20, #1b251e); border-color: #35463a; }
+.readiness-summary h2 { color: #e4ece5; }
+.readiness-message { color: #c0ccc2; }
+.readiness-note { color: #9aa89c; }
+.readiness-skill-list .tag { background: #2a3c2d; color: #b3d3b6; }
+
+.admin-tabs { border-color: #344137; }
+.admin-tabs button, .recruiter-tabs a { color: #a9b6ab; }
+.admin-tabs button.active, .recruiter-tabs a.active { background: #2a3d2e; color: #c1dfc4; }
+.table-wrap { background: #1b251e; border-color: #344137; }
+table { color: #d8e1d9; }
+th { color: #b4c0b6; background: #202b23; }
+td { color: #c3cec5; border-color: #303d33; }
+th, td { border-color: #303d33; }
+.table-wrap tbody tr:hover { background: #233027; }
+.table-wrap a { color: #b1d5b5; }
+
+.application-summary-card span, .application-job-details dt,
+.application-latest-update, .application-history time,
+.application-history-empty, .application-history p { color: #a0ada2; }
+.application-summary-card strong { color: #b4d7b8; }
+.application-card-heading h2 { color: #e4ece5; }
+.application-job-details { border-color: #334137; }
+.application-job-details dd, .application-history li { color: #c2cec3; }
+.application-history-panel, .application-history-panel summary { border-color: #334137; color: #b3d6b7; }
+.application-history-marker { background: #1b251e; border-color: #8ab68f; }
+.application-history li:not(:last-child)::before { background: #405444; }
+
+.recommendation-filters, .interview-filters { background: #1b251e; border-color: #344137; }
+.recommendation-method, .recommendation-badges, .recommendation-requirements .muted { color: #a2afa4; }
+.recommendation-card-heading h2, .recommendation-requirements h4 { color: #dce6dd; }
+.recommendation-score { background: #2b4030; color: #c2dfc5; }
+.recommendation-requirements li { background: #283a2c; color: #b7d4b9; }
+.recommendation-requirements:nth-child(2) li { background: #3a3328; color: #d0bd9e; }
+.recommendation-match-grid, .recommendation-action { border-color: #344137; }
+.recommendation-eligibility { background: #29432d; color: #bfdfc3; }
+.recommendation-incomplete, .recommendation-not_eligible { background: #3c3226; color: #dfc69d; }
+
+.interview-oversight { background: #1a241d; border-color: #344137; color: #dce5dd; }
+.scheduler-heading h2, .interview-delivery-summary h3 { color: #e0e9e1; }
+.scheduler-heading .muted, .interview-table-toolbar p { color: #9aa89c; }
+.scheduler-icon { background: #2a3d2e; color: #b5d8b9; }
+.interview-table-panel { background: #1b251e; border-color: #344137; }
+.interview-table-toolbar, .interview-table-footer { border-color: #344137; }
+.interview-table-toolbar h3, .interview-table-wrap strong { color: #dce5dd; }
+.interview-table-wrap th { background: #202b23; color: #b6c2b8; }
+.interview-table-wrap td { background: #1b251e; color: #c4cec5; border-color: #303d33; }
+.interview-table-wrap tbody tr:hover { background: #243228; }
+.interview-status { background: #3d3525; color: #e0cb97; }
+.interview-status-completed { background: #29432f; color: #c0dfc4; }
+.interview-status-cancelled { background: #452a27; color: #f0b7ae; }
+.interview-event-list .tag { background: #293b2d; color: #b7d4b9; }
+.interview-search { border-color: #3a4a3e; color: #9aa89c; }
+.interview-search input { color: #e3ebe4; }
+.interview-table-footer select { background: #131b16; color: #b0d4b4; border-color: #3a4a3e; }
+.interview-table-footer .pager button { background: #1b251e; border-color: #3a4a3e; color: #c2cec4; }
+.interview-slot-confirmation { background: #315f43; }
+.interview-submit { background: #527e59; }
+.interview-submit:hover { background: #64916b; }
+
+.company-welcome { background: #1d3926; }
+.dashboard-section h2 { color: #dfe8e0; }
+.analytics-row { color: #b4c0b6; border-color: #344137; }
+.analytics-row b { color: #b8d8bb; }
+.status-counts .tag { background: #2a3a2c; color: #b4d1b6; }
+.modal { background: #1b251e; color: #dce5dd; }
+.modal-heading h2 { color: #e3ebe4; }
+.modal-backdrop { background: #080d0abf; }
+.apply-panel, .interview-delivery-summary, .interview-event-list li { background-color: #1b251e; color: #dce5dd; }
+.pager { color: #b0bdb2; }
+.pager button, .admin-tabs button, .table-actions button, .table-wrap td button { background: #1b251e; border-color: #3a4a3e; color: #c2d1c4; }
+.pager button:hover, .admin-tabs button:hover, .table-actions button:hover, .table-wrap td button:hover { background: #29392d; }
+.google-sign-in-setup code { color: #f0dfa8; }
+
+h1, h2, h3, h4, h5, h6 { color: #e4ebe5; }
+.admin h2, .section-heading h1, .section-heading h2, .section > h1 { color: #e4ebe5; }
+.lead, .long-copy, .facts li, .facts b, .side-fact b, .detail-block p { color: #b8c5ba; }
+.side-fact { border-color: #334137; }
+.detail-block { border-color: #334137; }
+.back-link, .table-wrap a { color: #b1d5b5; }
+.admin-columns h3, .panel h3 { color: #dfe8e0; }
+.company-welcome p { color: #cfddcf; }
+.company-welcome .eyebrow { color: #b1d4b4; }
+.stat-card span { color: #aab7ac; }
+.stat-card b { color: #b8d8bb; }
+.application-actions button, .application-actions a { color: #c1dec4; }
+.notification-status .status-count { background: #29392d; color: #bdcfbf; }
+.notification-status .status-count.pending { background: #3d3525; color: #e0cb97; }
+.notification-status .status-count.sent { background: #29432f; color: #c0dfc4; }
+.notification-status .status-count.failed { background: #452a27; color: #f0b7ae; }
+.interview-schedule-panel > summary, .interview-reschedule > summary,
+.interview-history-panel > summary, .interview-list-toolbar h2,
+.interview-card-heading h2, .interview-card-heading h3 { color: #dce6dd; }
+.interview-list-toolbar label, .interview-form-details label,
+.interview-time-panel label { color: #c0ccc2; }
+.interview-list-toolbar select { background: #131b16; border-color: #3a4a3e; color: #e3ebe4; }
+.interview-facts, .interview-reschedule, .interview-history-panel { border-color: #344137; }
+.interview-facts dt, .interview-history time { color: #9aa89c; }
+.interview-facts dd, .interview-history { color: #c2cec4; }
+.interview-facts a, .interview-history a { color: #b1d5b5; }
+.interview-instructions { color: #b7c4b9; }
+.interview-status { background: #29392d; color: #c4d4c6; }
+.interview-status-completed { background: #29432f; color: #c0dfc4; }
+.interview-status-cancelled { background: #452a27; color: #f0b7ae; }
+
+.interview-booking-picker { background: #18251c; }
+.interview-booking-picker::before { border-color: #425a47; }
+.interview-calendar-panel, .interview-time-panel { background: #1b251e; border-color: #37483b; box-shadow: 0 8px 24px #00000024; }
+.interview-calendar-topline, .interview-time-panel > p, .interview-time-panel .interview-time-note { color: #9ba99e; }
+.interview-calendar-icon { background: #293b2d; color: #b4d7b8; }
+.interview-calendar-heading h3, .interview-time-panel h3 { color: #e3ebe4; }
+.interview-calendar-heading button { color: #c7d5c9; }
+.interview-calendar-heading button:hover:not(:disabled) { background: #2a3a2d; }
+.interview-weekday { color: #b1beb3; }
+.interview-calendar-grid > button { color: #d0d9d1; }
+.interview-calendar-grid > button:hover:not(:disabled) { background: #29392d; }
+.interview-calendar-grid > button.today { outline-color: #82ae87; }
+.interview-calendar-grid > button.selected { background: #527e59; color: #fff; }
+.interview-calendar-grid > button:disabled { color: #647168; }
+.interview-time-options button { background: #131b16; border-color: #354338; color: #dce6dd; }
+.interview-time-options button:hover:not(:disabled) { background: #29392d; border-color: #718f75; }
+.interview-time-options button.selected { background: #527e59; border-color: #77a27c; color: #fff; }
+.interview-time-options button:disabled { color: #66736a; }
+.interview-no-slots { color: #dfc69d; }
+.interview-submit { background: #527e59; }
+.interview-submit:hover { background: #64916b; }
+
+::selection { background: #456c4a; color: #fff; }

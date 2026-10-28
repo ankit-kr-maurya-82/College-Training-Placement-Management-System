@@ -1,0 +1,51 @@
+:root {
+  font-family: Inter, "Segoe UI Variable", "Segoe UI", Roboto, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root, button, input, select, textarea {
+  font-family: inherit;
+}
+
+body {
+  font-size: 14px;
+  line-height: 1.6;
+  letter-spacing: .005em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: inherit;
+  text-wrap: balance;
+}
+
+p, li, dd, dt, label, small, button, input, select, textarea {
+  text-rendering: optimizeLegibility;
+}
+
+.muted { color: #b0bdb2; }
+.eyebrow { color: #b2d8ae; font-size: 11px; font-weight: 750; }
+.company-label { color: #b1beb3; font-size: 12px; }
+.tag { font-size: 11px; font-weight: 650; }
+.card-meta, .drive-deadline { color: #b2beb3; font-size: 11px; }
+.text-link { font-size: 12px; }
+.form-stack label, .form-stack label small { font-size: 12px; }
+.form-stack label small { color: #a6b3a7; font-weight: 450; }
+.form-stack input, .form-stack select, .form-stack textarea { font-size: 13px; }
+.topbar nav > a, .topbar-menu > summary, .topbar-menu-list a { font-size: 12px; }
+.table-wrap th, .table-wrap td, table { font-size: 12px; }
+.notice, .state { font-size: 13px; }
+footer { font-size: 12px; }
+
+/* Replace the small serif accents used by the original light theme. */
+.hero-note, .hero-number, .hero-note b {
+  font-family: inherit;
+  font-style: normal;
+}
+
+@media (max-width: 700px) {
+  body { font-size: 13px; }
+  .form-stack label, .form-stack label small { font-size: 12px; }
+}
