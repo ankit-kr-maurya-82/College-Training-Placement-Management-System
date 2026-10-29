@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useAuth } from '../../context/auth.js'
 import { api } from '../../services/api.js'
 import { Busy, Notice } from '../../components/Feedback.jsx'
 import DataTable from '../../components/DataTable.jsx'
