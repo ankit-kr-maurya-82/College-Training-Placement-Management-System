@@ -8,7 +8,7 @@ import './Redesign.css'
 import './Typography.css'
 import './RealUI.css'
 import './LightTheme.css'
-
+    
 export default function App() {
   return <BrowserRouter>
             <AuthProvider>
