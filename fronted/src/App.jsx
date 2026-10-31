@@ -15,4 +15,4 @@ export default function App() {
               <AppRoutes />
             </AuthProvider>
           </BrowserRouter>
-}
+}   
