@@ -11,6 +11,8 @@ import { resendVerificationEmail, verifyEmail } from "../controllers/email-verif
 import { verificationResendRateLimit } from "../middlewares/email-verification-rate-limit.middleware.js";
 import { receiveProfilePicture } from "../middlewares/profile-picture-upload.middleware.js";
 import { uploadStudentProfilePicture } from "../controllers/profile-picture.controller.js";
+import { receiveResume } from "../middlewares/resume-upload.middleware.js";
+import { deleteStudentResume, getStudentResume, uploadStudentResume, getResumeAnalysisStatus, retryResumeExtraction, analyzeStudentResume, getStudentResumeAnalysis } from "../controllers/resume.controller.js";
 import { listStudentInterviews } from "../controllers/interview.controller.js";
 import { listStudentAnnouncements } from "../controllers/announcement.controller.js";
 import { getMySkillReadiness } from "../controllers/skill-readiness.controller.js";
@@ -26,6 +28,12 @@ router.post("/resend-verification", verificationResendRateLimit, (req, res) => {
 router.get("/me/profile", authenticateToken, requireActiveStudent, getMyStudentProfile);
 router.put("/me/profile", authenticateToken, requireActiveStudent, updateMyStudentProfile);
 router.post("/me/profile-picture", authenticateToken, requireActiveStudent, receiveProfilePicture, uploadStudentProfilePicture);
+router.post("/me/resume", authenticateToken, requireActiveStudent, receiveResume, uploadStudentResume);
+router.get("/me/resume", authenticateToken, requireActiveStudent, getStudentResume);
+router.get("/me/resume/analysis-status", authenticateToken, requireActiveStudent, getResumeAnalysisStatus);
+router.post("/me/resume/retry-extraction", authenticateToken, requireActiveStudent, retryResumeExtraction);
+router.post("/me/resume/analyze", authenticateToken, requireActiveStudent, analyzeStudentResume);
+router.get("/me/resume/analysis", authenticateToken, requireActiveStudent, getStudentResumeAnalysis);
 router.get("/me/interviews", authenticateToken, requireActiveStudent, listStudentInterviews);
 router.get("/me/readiness", authenticateToken, requireActiveStudent, getMySkillReadiness);
 router.get("/announcements", authenticateToken, requireActiveStudent, listStudentAnnouncements);

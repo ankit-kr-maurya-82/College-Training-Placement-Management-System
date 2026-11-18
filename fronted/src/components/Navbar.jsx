@@ -30,6 +30,7 @@ export default function Navbar() {
           <NavLink to="/interviews">Interviews</NavLink>
           <NavLink to="/announcements">Announcements</NavLink>
           <NavLink to="/profile">My profile</NavLink>
+          <NavLink to="/resume">Resume</NavLink>
         </div>
       </details>}
       {isManager && <details key={pathname} className={`topbar-menu${pathname.startsWith('/admin') ? ' active' : ''}`}>

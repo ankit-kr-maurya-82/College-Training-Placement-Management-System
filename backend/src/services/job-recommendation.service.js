@@ -56,6 +56,19 @@ export function scoreDriveRecommendation(student, drive) {
     };
 }
 
+export function scoreResumeSkillMatch(resumeSkills = [], requiredSkills = []) {
+    const required = [...new Set((requiredSkills || []).filter((value) => typeof value === "string" && value.trim()).map((value) => value.trim()))];
+    if (!required.length) return { matchPercentage: null, matchedSkills: [], missingSkills: [], totalRequiredSkills: 0 };
+    const normalizedResume = new Set((resumeSkills || []).filter((value) => typeof value === "string" && value.trim()).map((value) => value.trim().toLowerCase()));
+    const matchedSkills = required.filter((skill) => normalizedResume.has(skill.toLowerCase()));
+    const missingSkills = required.filter((skill) => !normalizedResume.has(skill.toLowerCase()));
+    return {
+        matchPercentage: Math.round(matchedSkills.length / required.length * 100),
+        matchedSkills,
+        missingSkills,
+        totalRequiredSkills: required.length,
+    };
+}
 export function rankRecommendations(recommendations, sort = "match") {
     const copy = [...recommendations];
     const deadline = (item) => new Date(item.drive.applicationDeadline).getTime();

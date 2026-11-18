@@ -1,7 +1,8 @@
 import { Application } from "../models/application.model.js";
 import { Company } from "../models/company.model.js";
 import { Drive } from "../models/drive.model.js";
-import { rankRecommendations, recommendationWeights, scoreDriveRecommendation } from "../services/job-recommendation.service.js";
+import { Resume } from "../models/resume.model.js";
+import { rankRecommendations, recommendationWeights, scoreDriveRecommendation, scoreResumeSkillMatch } from "../services/job-recommendation.service.js";
 
 const validId = (value) => typeof value === "string" && /^[a-f\d]{24}$/i.test(value);
 const eligibilityStatuses = new Set(["ELIGIBLE", "INCOMPLETE", "NOT_ELIGIBLE"]);
@@ -48,11 +49,19 @@ export async function getMyRecommendations(req, res) {
             Drive.find(driveFilter).populate("company", "name companyName logo location").lean(),
             Application.find({ student: studentId }).select("drive status").lean(),
         ]);
+
+        let resumeSkills = [];
+        try {
+            const resume = await Resume.findOne({ student: studentId }).select("analysisStatus analysis.technicalSkills").lean();
+            if (resume?.analysisStatus === "SUCCESS") resumeSkills = resume?.analysis?.technicalSkills || [];
+        } catch (error) {
+            resumeSkills = [];
+        }
         const applicationByDrive = new Map(applications.map((application) => [String(application.drive), application]));
         let recommendations = drives.map((drive) => {
             const match = scoreDriveRecommendation(req.studentAccount || {}, drive);
             const application = applicationByDrive.get(String(drive._id));
-            return { drive, ...match, applicationStatus: application?.status ?? null };
+            return { drive, ...match, applicationStatus: application?.status ?? null, resumeSkillMatch: scoreResumeSkillMatch(resumeSkills, drive.requiredSkills) };
         });
         if (status) recommendations = recommendations.filter((item) => item.eligibilityStatus === status);
         const ranked = rankRecommendations(recommendations, String(sort));

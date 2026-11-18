@@ -5,6 +5,7 @@ import Register from '../pages/auth/Register.jsx'
 import { ForgotPassword, ResetPassword } from '../pages/auth/PasswordRecovery.jsx'
 import { ResendVerification, VerifyEmail } from '../pages/auth/EmailVerification.jsx'
 import Drives, { Home } from '../pages/student/Dashboard.jsx'
+import Resume from '../pages/student/Resume.jsx'
 import DriveDetails from '../pages/student/DriveDetails.jsx'
 import Companies from '../pages/student/Companies.jsx'
 import CompanyDetails from '../pages/student/CompanyDetails.jsx'
@@ -49,6 +50,7 @@ export default function AppRoutes() {
                     <Route path="/applications" element={<Protected role="STUDENT"><Applications /></Protected>} />
                     <Route path="/interviews" element={<Protected role="STUDENT"><StudentInterviews /></Protected>} />
                     <Route path="/recommendations" element={<Protected role="STUDENT"><Recommendations /></Protected>} />
+        <Route path="/resume" element={<Protected role="STUDENT"><Resume /></Protected>} />
                     <Route path="/announcements" element={<Protected role="STUDENT"><StudentAnnouncements /></Protected>} />
                     <Route path="/profile" element={<Protected role="STUDENT"><StudentProfile /></Protected>} />
                     <Route path="/admin" element={<Protected manager><AdminDashboard /></Protected>} />
