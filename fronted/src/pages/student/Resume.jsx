@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../../services/api";
+import "../../styles/resumeTemplates.css";
 
 function emptyResume() {
     return {
@@ -20,8 +21,8 @@ export default function Resume() {
     const [status, setStatus] = useState(null);
     const [analysis, setAnalysis] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [template, setTemplate] = useState("modern");
     const [builder, setBuilder] = useState(emptyResume());
-
     useEffect(() => {
         api.get("/students/me/profile").then((data) => {
             const s = data.student || {};
@@ -181,9 +182,19 @@ export default function Resume() {
             <div>
                 <div className="flex justify-between items-center mb-2">
                     <h2 className="text-xl font-bold">Preview</h2>
+                    <select value={template} onChange={(e) => setTemplate(e.target.value)} className="border p-1 rounded">
+                        <option value="modern">Modern Professional</option>
+                        <option value="minimal">Minimal ATS</option>
+                        <option value="executive">Executive</option>
+                    </select>
+                    <select value={template} onChange={(e) => setTemplate(e.target.value)} className="border p-1 rounded">
+                        <option value="modern">Modern Professional</option>
+                        <option value="minimal">Minimal ATS</option>
+                        <option value="executive">Executive</option>
+                    </select>
                     <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={downloadPdf}>Download PDF</button>
                 </div>
-                <div id="resume-preview" className="border p-6 bg-white shadow text-sm space-y-3">
+                <div id="resume-preview" className={`border p-6 bg-white shadow text-sm space-y-3 template-${template}`}>
                     <h1 className="text-xl font-bold">{builder.personal.name || "Your Name"}</h1>
                     <p>{builder.personal.email} {builder.personal.phone} {builder.personal.location}</p>
                     {builder.personal.linkedin && <p>{builder.personal.linkedin}</p>}

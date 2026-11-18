@@ -1,0 +1,11 @@
+.template-modern .resume-name { font-size: 24px; font-weight: 700; border-bottom: 2px solid #111; padding-bottom: 8px; }
+.template-minimal .resume-name { font-size: 20px; font-weight: 600; }
+.template-executive .resume-name { font-size: 28px; font-weight: 800; text-transform: uppercase; }
+.template-minimal .section-title { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; }
+.template-executive .section-title { font-size: 18px; font-weight: 700; }
+
+@media print {
+  body * { visibility: hidden; }
+  #resume-preview, #resume-preview * { visibility: visible; }
+  #resume-preview { position: absolute; left: 0; top: 0; width: 100%; }
+}

@@ -133,7 +133,8 @@ export function Home() {
 
   return <>
     {isStudent && <>
-      <section className="welcome-strip"><div><p className="eyebrow">YOUR PLACEMENT SPACE</p><h2>Welcome back, {user.name?.split(' ')[0] || 'there'}.</h2><p>Pick up where you left off and keep moving forward.</p></div><div className="welcome-stat"><b>{summary?.pagination?.total ?? '—'}</b><span>applications</span></div><Link className="button" to="/applications">Track applications <ArrowRight size={16}/></Link></section>
+      <section className="welcome-strip"><div><p className="eyebrow">YOUR PLACEMENT SPACE</p><h2>Welcome back, {user.name?.split(' ')[0] || 'there'}.</h2><p>Pick up where you left off and keep moving forward.</p></div><div className="welcome-stat"><b>{summary?.pagination?.total ?? '—'}</b><span>applications</span></div><Link className="button" to="/applications">Track applications <ArrowRight size={16}/></Link>
+<Link className="button" to="/resume">Build Resume <ArrowRight size={16}/></Link></section>
       <ReadinessSummary/>
     </>}
     <Drives showHero={!isStudent}/>
