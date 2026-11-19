@@ -260,3 +260,22 @@ html, body, .app-shell { background: #fff; }
 .apply-panel .side-fact { border-color: #D9E2E7; background: transparent; }
 .apply-panel .side-fact span { color: #526674; }
 .apply-panel .side-fact b { color: #1D3557; }
+
+/* Keep directory search and profile surfaces readable in the light interface. */
+.search-wide {
+  border-color: var(--line-strong);
+  background: #fff;
+  color: var(--ink);
+}
+.search-wide::placeholder { color: #687985; opacity: 1; }
+.student-profile > .profile-card,
+.profile-card {
+  border-color: var(--line);
+  background: #fff;
+  color: var(--ink);
+}
+.student-profile .profile-card > .muted { color: #425563; }
+.student-profile .profile-picture-upload { border-color: var(--line); background: #F7F9FA; }
+.profile-card h1, .profile-card h2, .profile-card h3,
+.profile-card label, .profile-card .form-stack label { color: var(--heading); }
+.profile-card .muted { color: var(--muted); }
