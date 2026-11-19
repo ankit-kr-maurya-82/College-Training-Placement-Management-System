@@ -66,7 +66,7 @@ a, .text-link, .text-link:link, .text-link:visited, .back-link, .table-wrap a { 
 /* Shared cards, forms, and states */
 .panel, .drive-card, .company-card, .stat-card, .application-card,
 .application-summary-card, .recommendation-card, .interview-card,
-.interview-schedule-panel, .interview-history-panel, .interview-delivery-summary,
+.interview-schedule-panel, .interview-history-panel,
 .company-details-card, .apply-panel, .roles-filters, .filters,
 .roles-section .drive-card, .readiness-summary, .interview-booking-picker,
 .interview-oversight, .interview-calendar-panel, .interview-time-panel,
@@ -279,3 +279,59 @@ html, body, .app-shell { background: #fff; }
 .profile-card h1, .profile-card h2, .profile-card h3,
 .profile-card label, .profile-card .form-stack label { color: var(--heading); }
 .profile-card .muted { color: var(--muted); }
+
+/* Final contrast pass for components whose selectors outrank the base theme. */
+.section .search-wide,
+.section input.search-wide {
+  border-color: #AEBCC5 !important;
+  background: #FFFFFF !important;
+  color: #1D2B36 !important;
+  -webkit-text-fill-color: #1D2B36;
+}
+.section .search-wide::placeholder { color: #526674 !important; opacity: 1; }
+.company-card p:not(.muted) { color: #425563; }
+.company-card .muted,
+.student-profile .muted,
+.profile-card .muted { color: #526674; }
+.profile-card input, .profile-card select, .profile-card textarea {
+  border-color: #AEBCC5 !important;
+  background: #FFFFFF !important;
+  color: #1D2B36 !important;
+  -webkit-text-fill-color: #1D2B36;
+}
+.profile-card input::placeholder, .profile-card textarea::placeholder { color: #687985 !important; opacity: 1; }
+.profile-picture-upload { border-color: #C4D0D7 !important; background: #F7F9FA !important; color: #1D2B36; }
+.profile-picture-preview { border-color: #B7C8D2 !important; background: #D9E8F1 !important; color: #315A70 !important; }
+
+.panel, .drive-card, .company-card, .stat-card, .application-card,
+.application-summary-card, .recommendation-card, .interview-card,
+.interview-schedule-panel, .interview-history-panel, .interview-delivery-summary,
+.company-details-card, .apply-panel, .roles-filters, .filters,
+.roles-section .drive-card, .readiness-summary, .interview-booking-picker,
+.interview-oversight, .interview-calendar-panel, .interview-time-panel,
+.interview-table-panel, .table-wrap, .modal, .auth-card,
+.employer-preview, .placement-process, .profile-card,
+.application-history-panel, .interview-history-panel,
+.recommendation-filters, .interview-filters, .interview-delivery-summary,
+.interview-event-list li, .state {
+  border-color: #C4D0D7 !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  color: #1D2B36 !important;
+  box-shadow: 0 4px 14px #1D35570A;
+}
+.roles-filters, .filters, .placement-process { background-color: #F3F6F7 !important; }
+.application-history p, .application-history-empty,
+.recommendation-method, .recommendation-badges,
+.recommendation-requirements .muted,
+.interview-table-toolbar p, .interview-list-toolbar,
+.interview-search input { color: #425563 !important; }
+.table-wrap th, .interview-table-wrap th, th {
+  background: #E7ECEF !important;
+  color: #344A58 !important;
+}
+.table-wrap td, .interview-table-wrap td, td {
+  background: #FFFFFF !important;
+  color: #42515C !important;
+  border-color: #E3E9EC !important;
+}
